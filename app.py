@@ -12,20 +12,17 @@ def get_users():
     connection = get_db_connection()
     cursor = connection.cursor()
 
-    sql = "show tables"
+    sql = '''
+    SELECT ga.game_name, gr.game_genre
+    FROM games ga
+    JOIN game_genres gr ON gr.game_id = ga.game_id
+    GROUP BY ga.game_name;
+    '''
     cursor.execute(sql)
     users = cursor.fetchall()
-
-    print("================================= ****")
-    tablename = users[0]['Tables_in_moneygame']
 
     
-    print("=================================")
-
-    sql = "describe " + tablename;
-    cursor.execute(sql)
-    users = cursor.fetchall()
-
+    
     cursor.close()
     connection.close()
 
