@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect
 from db import get_db_connection
 from werkzeug.security import generate_password_hash, check_password_hash
+import pymysql
 
 app = Flask(__name__)
 
@@ -41,19 +42,23 @@ def login():
         pw = request.form.get('password')
 
         connection = get_db_connection()
-        cursor = connection.cursor()        
+        cursor = connection.cursor(pymysql.cursors.DictCursor)        
 
-        sql = "SELECT first_name, password FROM players WHERE username = %s"
+        sql = "SELECT * FROM players WHERE username = %s"
 
         cursor.execute(sql, (user))
         result = cursor.fetchone()
         if result:
-            stored_hash = result['password']
             first_name = result['first_name']
+            stored_hash = result['password']
 
-            if check_password_hash(stored_hash, pw):
+            
+
+
+            if stored_hash == pw:
                 print(f"Success! Welcome {first_name}")
-                return f"Welcome {first_name}!" 
+                return render_template("welcome.html", result=result)
+                
             else:
                 print("Failed: Wrong password.")
                 return render_template("login.html", error="Invalid password")
@@ -76,8 +81,8 @@ def signup():
         uname = request.form.get('username')
         email = request.form.get('email')
         dob   = request.form.get('dob')
-        unhashed_password = request.form.get('password')
-        password = generate_password_hash(unhashed_password) 
+        password = request.form.get('password')
+        # password = generate_password_hash(unhashed_password) 
 
         connection = get_db_connection()
         cursor = connection.cursor()
@@ -97,7 +102,7 @@ def signup():
 
 @app.route("/friends", methods=['GET', 'POST'])
 def friends():
-    player_id = 2
+    player_id = 1
     conn = get_db_connection()
     cursor = conn.cursor()
     match = None

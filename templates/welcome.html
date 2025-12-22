@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+<div class="bg-white w-full max-w-2xl rounded-lg shadow-lg p-8">
+    <h1 class="text-3xl font-bold text-center mb-6">
+        Welcome, {{ result.first_name }} 👋
+    </h1>
+
+    <div class="grid grid-cols-2 gap-4 text-gray-700">
+        <div><span class="font-semibold">Player ID:</span> {{ result.player_id }}</div>
+        <div><span class="font-semibold">Username:</span> {{ result.username }}</div>
+
+        <div><span class="font-semibold">First Name:</span> {{ result.first_name }}</div>
+        <div><span class="font-semibold">Last Name:</span> {{ result.last_name }}</div>
+
+        <div class="col-span-2">
+            <span class="font-semibold">Email:</span> {{ result.email }}
+        </div>
+
+        <div>
+            <span class="font-semibold">Date of Birth:</span> {{ result.date_of_birth }}
+        </div>
+
+        <div>
+            <span class="font-semibold">Balance:</span>
+            ৳{{ "%.2f"|format(result.personal_balance) }}
+        </div>
+
+    
+    </div>
+
+    <div class="mt-8 flex justify-center">
+        <form action="#" method="post">
+            <button
+                type="submit"
+                class="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-2 rounded-md transition"
+            >
+                Friends
+            </button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
