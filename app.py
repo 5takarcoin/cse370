@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, request, render_template
 from db import get_db_connection
 
 app = Flask(__name__)
@@ -9,8 +9,8 @@ def home():
 
 @app.route("/users")
 def get_users():
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
     sql = '''
     SELECT ga.game_name, gr.game_genre
@@ -24,9 +24,8 @@ def get_users():
     
     
     cursor.close()
-    connection.close()
+    conn.close()
 
-    # return jsonify(users)
 
     print("=================================")
     print(users)
@@ -42,7 +41,24 @@ def login():
 def signup():
     return render_template("signup.html")
 
-
+@app.route("/friends", methods=['GET', 'POST'])
+def friends():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    match = None
+    if request.method == 'POST':
+        # Check if user is in database
+        username = request.form['username']
+        sql = f"SELECT username FROM players WHERE username = '{username}'"
+        cursor.execute(sql)
+        matches = cursor.fetchall()
+        if len(matches) == 1:
+            match = True
+        else:
+            match = False
+    cursor.close()
+    conn.close()
+    return render_template("friends.html", match=match)
 
 if __name__ == "__main__":
     app.run(debug=True)

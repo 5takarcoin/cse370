@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Friends</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 class="text-2xl font-bold text-center mb-6">Send a friend request:</h2>
+
+        <form method="POST" action="/friends" class="space-y-4">
+            <div>
+                <label class="block text-gray-700 mb-1">Username</label>
+                <input
+                    type="text"
+                    name="username"
+                    required
+                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+            </div>
+
+            <button
+                type="submit"
+                class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+            >
+                Send
+            </button>
+        </form>
+        {% if match is not none%}
+            {% if match is true%}
+                <p>Friend request sent!</p>   
+            {% else %}
+                <p>Player doesn't exist</p>  
+            {% endif %}
+        {% endif %}
+
+    </div>
+</body>
+</html>
