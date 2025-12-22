@@ -6,6 +6,5 @@ def get_db_connection():
         user="root",
         password="",
         database="cse370",
-        port=3306,
-        cursorclass=pymysql.cursors.DictCursor
+        port=3306
     )

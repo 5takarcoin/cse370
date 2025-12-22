@@ -97,22 +97,56 @@ def signup():
 
 @app.route("/friends", methods=['GET', 'POST'])
 def friends():
+    player_id = 2
     conn = get_db_connection()
     cursor = conn.cursor()
     match = None
+    is_self = False
     if request.method == 'POST':
         # Check if user is in database
         username = request.form['username']
-        sql = f"SELECT username FROM players WHERE username = '{username}'"
+        sql = f"SELECT player_id, username FROM players WHERE username = '{username}';"
         cursor.execute(sql)
         matches = cursor.fetchall()
         if len(matches) == 1:
             match = True
+            receiver_id = matches[0][0]
+            if receiver_id == player_id:
+                is_self = True
+            else:
+                sql = f"INSERT INTO friend_requests (sender_id, receiver_id) VALUES ({player_id}, {receiver_id});"
+                cursor.execute(sql)
+                conn.commit()
         else:
             match = False
+    
+    # Show friend requests
+    sql = f'''
+    SELECT CONCAT(p.first_name, ' ', p.last_name) FROM players p
+    INNER JOIN friend_requests frq ON frq.sender_id = p.player_id
+    WHERE frq.receiver_id = {player_id}
+    '''
+    cursor.execute(sql)
+    incoming_friend_requests = cursor.fetchall()
+
+    
+    # # Show friends
+    # sql = f'''
+    # SELECT CONCAT(p.first_name, ' ', p.last_name) FROM friendships frn
+    # INNER JOIN players p1 ON frn.befriender_id = p1.player_id
+    # INNER JOIN players p2 ON frn.befriended_id = p2.player_id
+    # WHERE frn.befriender_id = {player_id} or frn.befriended_id = {player_id}
+    # '''
+    cursor.execute(sql)
+    # friends = cursor.fetchall()
+    
     cursor.close()
     conn.close()
-    return render_template("friends.html", match=match)
+    return render_template("friends.html", match=match, is_self=is_self, incoming_friend_requests = incoming_friend_requests)
 
+@app.route('/bank')
+def bank():
+    player_id = 1
+    pass
 if __name__ == "__main__":
     app.run(debug=True)
