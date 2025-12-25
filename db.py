@@ -5,6 +5,7 @@ def get_db_connection():
         host="127.0.0.1",
         user="root",
         password="",
-        database="cse370",
+        database="money_game",
         port=3306
+        cursorclass=pymysql.cursors.DictCursor
     )
