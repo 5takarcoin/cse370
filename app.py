@@ -8,73 +8,65 @@ from db import get_db_connection
 app = Flask(__name__)
 app.secret_key = '123'
 
-@app.route("/")
+@app.route("/", methods=['POST', 'GET'])
 def home():
-    return "Hello my name is Human!"
+    if request.method == 'GET':
+        if 'id' in session:
+            player_id = session['id']
 
-@app.route("/users")
-def get_users():
-    conn = get_db_connection()
-    cursor = conn.cursor()
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            query = f'''
+            SELECT username 
+            FROM players 
+            WHERE player_id="{player_id}";
+            '''
 
-    sql = '''
-    SELECT ga.game_name, gr.game_genre
-    FROM games ga
-    JOIN game_genres gr ON gr.game_id = ga.game_id
-    GROUP BY ga.game_name;
-    '''
-    cursor.execute(sql)
-    users = cursor.fetchall()
+            cursor.execute(query)
+            player = cursor.fetchone()
 
-    
-    
-    cursor.close()
-    conn.close()
+            cursor.close()
+            conn.close()
 
+            username = player['username']
 
-    print("=================================")
-    print(users)
-    print("=================================")
-
-    return "Connecting DB"
+            return f'''
+            <h1>Hello <a href="{url_for('player_profile', username=username)}">{username}</a></h1>
+            <form method="POST">
+                <p><input type=submit name=logout value=logout></p>
+            </form>
+            '''
+        else:
+            return redirect(url_for('login'))
+    else:
+        if "logout" in request.form:
+            session.pop('id', None)
+            return redirect(url_for('login'))
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        user = request.form.get('username')
-        pw = request.form.get('password')
+        username = escape(request.form.get('username'))
+        password = escape(request.form.get('password'))
 
-        connection = get_db_connection()
-        cursor = connection.cursor(pymysql.cursors.DictCursor)        
+        conn = get_db_connection()
+        cursor = conn.cursor()        
 
-        sql = "SELECT * FROM players WHERE username = %s"
+        query = f'SELECT player_id, password FROM players WHERE username="{username}";'
+        cursor.execute(query)
+        player = cursor.fetchone()
 
-        cursor.execute(sql, (user))
-        result = cursor.fetchone()
-        if result:
-            first_name = result['first_name']
-            stored_hash = result['password']
-
-            
-
-
-            if stored_hash == pw:
-                print(f"Success! Welcome {first_name}")
-                return render_template("welcome.html", result=result)
-                
-            else:
-                print("Failed: Wrong password.")
-                return render_template("login.html", error="Invalid password")
+        if player and player['password'] == password:
+            session['id'] = player['player_id']
+            return redirect(url_for('home'))
         else:
-            print("Failed: Username not found.")
-            return render_template("login.html", error="User does not exist")
-
+            return "Invalid"
         cursor.close()
         connection.close()
-
-    return render_template("login.html")
-
-
+    else:
+        session.pop('id', None)
+        return render_template("login.html")
 
 @app.route("/signup", methods=['GET', 'POST'])
 def signup():
@@ -152,9 +144,5 @@ def friends():
     conn.close()
     return render_template("friends.html", match=match, is_self=is_self, incoming_friend_requests = incoming_friend_requests)
 
-@app.route('/bank')
-def bank():
-    player_id = 1
-    pass
 if __name__ == "__main__":
     app.run(debug=True)
