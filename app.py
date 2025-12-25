@@ -144,5 +144,42 @@ def friends():
     conn.close()
     return render_template("friends.html", match=match, is_self=is_self, incoming_friend_requests = incoming_friend_requests)
 
+@app.route("/player/<username>")
+def player_profile(username):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    profile_query = f'''
+    SELECT CONCAT(first_name, " ", last_name) AS name, TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) AS age, personal_balance 
+    FROM players 
+    WHERE username="{username}";
+    '''
+    cursor.execute(profile_query)
+    profile_details = cursor.fetchone()
+
+    friendship_query = f'''
+    SELECT CONCAT(p.first_name, " ", p.last_name) AS name, p.username
+    FROM (SELECT befriended_id AS friend_id
+    FROM friendships
+    WHERE befriender_id = (SELECT player_id FROM players WHERE username = "{username}")
+    
+    UNION
+
+    SELECT befriender_id AS friend_id
+    FROM friendships
+    WHERE befriended_id = (SELECT player_id FROM players WHERE username = "{username}")) 
+    AS t
+
+    INNER JOIN players p 
+    ON p.player_id = t.friend_id
+    ORDER BY p.personal_balance DESC;
+    '''
+    cursor.execute(friendship_query)
+    friends = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    return render_template('player_profile.html', user=username, details=profile_details, friends=friends)
+
 if __name__ == "__main__":
     app.run(debug=True)

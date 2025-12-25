@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{user}}'s profile</title>
+</head>
+<body>
+    <h1>{{user}}</h1>
+    <h2>user details</h2>
+    <ul>
+        <li>Full Name: {{details['name']}}</li>
+        <li>Age: {{details['age']}}</li>
+        <li>Personal Balance: ${{details['personal_balance']}}</li>
+        <li>Bank Balance: $12000.00</li>
+        <li>Favourite Game: Rock-Paper-Scissors</li>
+        <li>Best Friend: <a href="{{url_for('player_profile', username=friends[0]['username'])}}">{{friends[0]['name']}}</a></li>
+    </ul>
+    <h2>friends</h2>
+    <ul>
+    {% for f in friends %}
+        <li><a href="{{url_for('player_profile', username=f['username'])}}">{{f['name']}}</a></li>
+    {% endfor %}
+    </ul>
+</body>
+</html>
