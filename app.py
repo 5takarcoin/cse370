@@ -57,7 +57,7 @@ def login():
         else:
             return "Invalid"
         cursor.close()
-        connection.close()
+        conn.close()
     else:
         session.pop('id', None)
         return render_template("login.html")
@@ -65,15 +65,14 @@ def login():
 @app.route("/signup", methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        fname = request.form.get('first_name')
-        lname = request.form.get('last_name')
-        uname = request.form.get('username')
-        email = request.form.get('email')
-        dob   = request.form.get('dob')
-        password = request.form.get('password')
-        # password = generate_password_hash(unhashed_password) 
+        fname = escape(request.form.get('first_name'))
+        lname = escape(request.form.get('last_name'))
+        uname = escape(request.form.get('username'))
+        email = escape(request.form.get('email'))
+        dob = escape(request.form.get('dob'))
+        password = escape(request.form.get('password'))
 
-        connection = get_db_connection()
+        conn = get_db_connection()
         cursor = connection.cursor()
         
         sql = """
@@ -84,7 +83,7 @@ def signup():
         cursor.execute(sql, (fname, lname, uname, email, password, dob))
         connection.commit()        
         cursor.close()
-        connection.close()
+        conn.close()
 
         return redirect('/login')
     return render_template("signup.html")
