@@ -73,7 +73,7 @@ def signup():
         password = escape(request.form.get('password'))
 
         conn = get_db_connection()
-        cursor = connection.cursor()
+        cursor = conn.cursor()
         
         sql = """
         INSERT INTO players (first_name, last_name, username, email, password, date_of_birth)
@@ -81,61 +81,77 @@ def signup():
         """
         print("Dekho", fname, uname, dob, password)
         cursor.execute(sql, (fname, lname, uname, email, password, dob))
-        connection.commit()        
+        
+        conn.commit()        
         cursor.close()
         conn.close()
 
-        return redirect('/login')
+        return redirect(url_for('login'))
     return render_template("signup.html")
 
 @app.route("/friends", methods=['GET', 'POST'])
 def friends():
-    player_id = 1
+    player_id = session['id']
+
     conn = get_db_connection()
     cursor = conn.cursor()
     match = None
     is_self = False
+
     if request.method == 'POST':
-        # Check if user is in database
-        username = request.form['username']
-        sql = f"SELECT player_id, username FROM players WHERE username = '{username}';"
-        cursor.execute(sql)
-        matches = cursor.fetchall()
-        if len(matches) == 1:
-            match = True
-            receiver_id = matches[0][0]
-            if receiver_id == player_id:
-                is_self = True
-            else:
-                sql = f"INSERT INTO friend_requests (sender_id, receiver_id) VALUES ({player_id}, {receiver_id});"
-                cursor.execute(sql)
-                conn.commit()
+        if 'friend_id' in request.form:
+            return "Added"
         else:
-            match = False
+            # Check if user is in database
+            username = request.form['username']
+            sql = f"SELECT player_id, username FROM players WHERE username = '{username}';"
+            cursor.execute(sql)
+            matches = cursor.fetchone()
+            if matches:
+                match = True
+                receiver_id = matches['player_id']
+                if receiver_id == player_id:
+                    is_self = True
+                else:
+                    sql = f"INSERT INTO friend_requests (sender_id, receiver_id) VALUES ({player_id}, {receiver_id});"
+                    cursor.execute(sql)
+                    conn.commit()
+            else:
+                match = False
+
+    friendship_query = f'''
+    SELECT CONCAT(p.first_name, " ", p.last_name) AS name, p.username
+    FROM (
+        SELECT befriended_id AS friend_id
+        FROM friendships
+        WHERE befriender_id = "{player_id}"
+        
+        UNION
+
+        SELECT befriender_id AS friend_id
+        FROM friendships
+        WHERE befriended_id = "{player_id}"
+    ) AS t
+
+    INNER JOIN players p 
+    ON p.player_id = t.friend_id
+    ORDER BY p.personal_balance DESC;
+    '''
+    cursor.execute(friendship_query)
+    friends = cursor.fetchall()
     
-    # Show friend requests
-    sql = f'''
-    SELECT CONCAT(p.first_name, ' ', p.last_name) FROM players p
+    frq_query = f'''
+    SELECT CONCAT(p.first_name, ' ', p.last_name) as name, p.username, p.player_id
+    FROM players p
     INNER JOIN friend_requests frq ON frq.sender_id = p.player_id
     WHERE frq.receiver_id = {player_id}
     '''
-    cursor.execute(sql)
-    incoming_friend_requests = cursor.fetchall()
-
-    
-    # # Show friends
-    # sql = f'''
-    # SELECT CONCAT(p.first_name, ' ', p.last_name) FROM friendships frn
-    # INNER JOIN players p1 ON frn.befriender_id = p1.player_id
-    # INNER JOIN players p2 ON frn.befriended_id = p2.player_id
-    # WHERE frn.befriender_id = {player_id} or frn.befriended_id = {player_id}
-    # '''
-    cursor.execute(sql)
-    # friends = cursor.fetchall()
+    cursor.execute(frq_query)
+    requests = cursor.fetchall()
     
     cursor.close()
     conn.close()
-    return render_template("friends.html", match=match, is_self=is_self, incoming_friend_requests = incoming_friend_requests)
+    return render_template("friends.html", match=match, is_self=is_self, frn=friends, frq=requests)
 
 @app.route("/player/<username>")
 def player_profile(username):
