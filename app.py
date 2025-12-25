@@ -100,7 +100,24 @@ def friends():
 
     if request.method == 'POST':
         if 'friend_id' in request.form:
-            return "Added"
+            receiver_id = session['id']
+            sender_id = request.form["friend_id"]
+
+            insertion_query = f'''
+            INSERT INTO friendships(befriender_id, befriended_id)
+            VALUES({sender_id}, {receiver_id})'''
+            cursor.execute(insertion_query)
+
+            deletion_query = f'''
+            DELETE FROM friend_requests 
+            WHERE sender_id = {sender_id} AND receiver_id = {receiver_id}
+            '''
+            cursor.execute(deletion_query)
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+            return redirect(url_for('friends'))
         else:
             # Check if user is in database
             username = request.form['username']
