@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Game Homepage</title>
+</head>
+<body>
+<h1>Hello <a href="{{url_for('player_profile', username=username)}}">{{username}}</a></h1>
+<h2>Menu</h2>
+<ul>
+    <li><a href="{{url_for('player_profile', username=username)}}">My profile</a></li>
+    <li><a href="#">Friends</a></li>
+    <li><a href="#">Bank</a></li>
+    <li><a href="#">Stock Market</a></li>
+    <li><a href="#">Games</a></li>
+</ul>
+
+<form method="POST">
+    <p><input type=submit name=logout value=logout></p>
+</form>

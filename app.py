@@ -30,13 +30,7 @@ def home():
             conn.close()
 
             username = player['username']
-
-            return f'''
-            <h1>Hello <a href="{url_for('player_profile', username=username)}">{username}</a></h1>
-            <form method="POST">
-                <p><input type=submit name=logout value=logout></p>
-            </form>
-            '''
+            return render_template('home.html', username=username)
         else:
             return redirect(url_for('login'))
     else:
