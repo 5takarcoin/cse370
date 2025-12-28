@@ -1,5 +1,6 @@
 from flask import Flask
-from flask import request, redirect, url_for, session
+from flask import request, redirect, url_for
+from flask import session, flash, get_flashed_messages
 from flask import render_template
 from markupsafe import escape
 
@@ -65,29 +66,56 @@ def login():
 @app.route("/signup", methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        fname = escape(request.form.get('first_name'))
-        lname = escape(request.form.get('last_name'))
-        uname = escape(request.form.get('username'))
-        email = escape(request.form.get('email'))
-        dob = escape(request.form.get('dob'))
-        password = escape(request.form.get('password'))
+        fname = request.form['first_name']
+        lname = request.form['last_name']
+        uname = request.form['username']
+        email = request.form['email']
+        dob = request.form['dob']
+        password = request.form['password']
+
+        valid = True
+
+        validation_query = '''
+        SELECT
+            EXISTS (
+                SELECT 1 FROM players WHERE username = %s 
+            ) AS username_taken,
+            EXISTS (
+                SELECT 1 FROM players WHERE email = %s
+            ) AS email_taken;
+        '''
+
+        insertion_query = '''
+        INSERT INTO players (first_name, last_name, username, email, date_of_birth, password)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        '''
 
         conn = get_db_connection()
-        cursor = conn.cursor()
         
-        sql = """
-        INSERT INTO players (first_name, last_name, username, email, password, date_of_birth)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        """
-        print("Dekho", fname, uname, dob, password)
-        cursor.execute(sql, (fname, lname, uname, email, password, dob))
+        with conn.cursor() as cursor:
+            cursor.execute(validation_query, (uname, email))
+            row = cursor.fetchone()
+            username_taken = bool(row['username_taken'])
+            email_taken = bool(row['email_taken'])
+            if username_taken or email_taken:
+                valid = False
+            if username_taken:
+                flash("Username is taken! Please try a different one.")
+            if email_taken:
+                flash("Email is associated with an existing account! Please log in.")
+        if valid:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    insertion_query,
+                    (fname, lname, uname, email, dob, password)
+                )
+                flash("Sign up successful! Please log in.")
 
-        conn.commit()        
-        cursor.close()
+        conn.commit()
         conn.close()
 
-        return redirect(url_for('login'))
-    return render_template("signup.html")
+        if valid: return redirect(url_for('login'))
+    return render_template('signup.html')
 
 @app.route("/friends", methods=['GET', 'POST'])
 def friends():
@@ -113,8 +141,8 @@ def friends():
             WHERE sender_id = {sender_id} AND receiver_id = {receiver_id}
             '''
             cursor.execute(deletion_query)
-            conn.commit()
             cursor.close()
+            conn.commit()
             conn.close()
 
             return redirect(url_for('friends'))
