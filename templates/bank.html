@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank</title>
+</head>
+<body>
+    <h1>Bank</h1>
+    <h2>Details</h2>
+    <ul>
+        <li>Account Holder: {{ session['fname'] }} {{ session['lname'] }}</li>
+        <li>Account Number: {{ account['account_no'] }}</li>
+        <li>Account Type: {{ account['account_type'] }}</li>
+        <li>Balance: {{ account['account_type'] }}</li>
+    </ul>
+    <h2>Bank Menu</h2>
+        <ul>
+            <li>Deposit money</li>
+            <li>Transfer money</li>
+            <li>See transactions</li>
+        </ul>
+</body>
+</html>

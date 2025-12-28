@@ -13,25 +13,10 @@ app.secret_key = '123'
 def home():
     if request.method == 'GET':
         if 'id' in session:
-            player_id = session['id']
-
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            query = f'''
-            SELECT username 
-            FROM players 
-            WHERE player_id="{player_id}";
-            '''
-
-            cursor.execute(query)
-            player = cursor.fetchone()
-
-            cursor.close()
-            conn.close()
-
-            username = player['username']
-            return render_template('home.html', username=username)
+            first_name = session['fname']
+            last_name = session['lname']
+            username = session['username']
+            return render_template('home.html', username=username, fname=first_name, lname=last_name)
         else:
             return redirect(url_for('login'))
     else:
@@ -48,12 +33,15 @@ def login():
         conn = get_db_connection()
         cursor = conn.cursor()        
 
-        query = f'SELECT player_id, password FROM players WHERE username="{username}";'
+        query = f'SELECT player_id, username, first_name, last_name, password FROM players WHERE username="{username}";'
         cursor.execute(query)
         player = cursor.fetchone()
 
         if player and player['password'] == password:
             session['id'] = player['player_id']
+            session['username'] = player['username']
+            session['fname'] = player['first_name']
+            session['lname'] = player['last_name']
             return redirect(url_for('home'))
         else:
             flash("Username or password is incorrect!")
@@ -234,7 +222,12 @@ def player_profile(username):
     cursor.close()
     conn.close()
 
-    return render_template('player_profile.html', user=username, details=profile_details, friends=friends)
+    return render_template(
+        'player_profile.html',
+        user=username,
+        details=profile_details,
+        friends=friends
+        )
 
 @app.route('/bank')
 def bank():
@@ -254,12 +247,65 @@ def bank():
     account = cursor.fetchone()
 
     if not account:
-        redirect(url_for(create_bank_account))
+        return redirect(url_for('create_bank_account'))
     else:
-        return account
+        return render_template('bank.html', account=account)
 
-@app.route('/onboarding')
+@app.route('/onboarding', methods=["POST", "GET"])
 def create_bank_account():
-    return "pass"
+    valid = False
+    conn = get_db_connection()
+    
+    type_query = '''
+        SELECT DISTINCT account_type
+        FROM bank_accounts;
+    '''
+    validation_query = '''
+        SELECT personal_balance
+        FROM players
+        WHERE player_id = %s;
+    '''
+    ba_insertion_query = '''
+        INSERT INTO bank_accounts (account_no, account_type, account_balance)
+        VALUES (%s, %s, %s);
+    '''
+    ownership_insertion_query = '''
+        INSERT INTO ownership (player_id, account_no)
+        VALUES (%s, %s)
+    '''
+    update_query = '''
+        UPDATE players
+        SET personal_balance = personal_balance - %s
+        WHERE player_id = %s
+    '''
+
+    with conn.cursor() as cursor:
+        cursor.execute(type_query)
+        account_types = cursor.fetchall()
+
+    if request.method == "POST":
+        deposit = int(request.form.get('initial_deposit'))
+        account_type = request.form.get('account_type')
+
+
+        with conn.cursor() as cursor:
+            player_id = session['id']
+            cursor.execute(validation_query, (player_id,))
+            row = cursor.fetchone()
+            balance = row['personal_balance']
+            valid = balance > deposit
+    
+        if not valid:
+            flash("You do not have that much money!")
+            return redirect(url_for('create_bank_account'))
+        with conn.cursor() as cursor:
+            account_no = f'MONEYGAME-{account_type.upper()}-{player_id:05}'
+            cursor.execute(ba_insertion_query, (account_no, account_type, deposit))
+            cursor.execute(ownership_insertion_query, (player_id, account_no))
+            cursor.execute(update_query, (deposit, player_id))
+            conn.commit()
+            return redirect(url_for('bank'))
+    conn.close()
+    return render_template('bank_registration.html', account_types=account_types)
 if __name__ == "__main__":
     app.run(debug=True)

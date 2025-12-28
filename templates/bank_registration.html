@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register a bank account</title>
+</head>
+<body>
+    <form method="post">
+        <div>
+            <label for="account_type">Account Type</label>
+            <select name="account_type" required>
+                <option value="">Select one</option>
+                {% for t in account_types %}
+                <option value="{{t['account_type']}}">{{t['account_type']}}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="initial_deposit">Initial Deposit</label>
+            <input type="number" min="{{5}}" step="1" name="initial_deposit" required>
+        </div>
+
+        <div>
+            <input type="checkbox" name="confirm" required>
+            <label for="confirm">I agree to sell my soul</label>
+        </div>
+
+        <div>
+            <input type="submit" value="submit">
+        </div>
+
+    </form>
+        <ul>
+        {% for m in get_flashed_messages() %}
+            <li>{{m}}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
