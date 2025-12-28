@@ -1,0 +1,27 @@
+* '/login':
+	- Ask for login and show sign up link as well
+		- If user clicks sign up: visit '/player-registration'
+		- Else if user fills up login form and submits:
+			- Check if data matches database:
+				- If matches:
+					- Store session data
+					- Visit '/'
+				- Else: Visit '/login' with error message
+* '/signup':
+	- Ask for details and also show login link
+		- If user clicks login: visit '/login'
+		- Else if user fills up sign up form and submits:
+			- Validate data:
+				- If valid: Visit '/login' with success message
+				- Else: Visit '/player-registration' with issue info message
+* User visits any other page:
+	- Check session for user data:
+		- If doesn't exist redirect to '/login'
+		- Else render page
+
+* '/':
+	- Links link to corresponding pages
+	- If user clicks logout button:
+		- Remove session data
+		- Redirect to '/login'
+	

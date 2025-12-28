@@ -81,7 +81,7 @@ def signup():
         """
         print("Dekho", fname, uname, dob, password)
         cursor.execute(sql, (fname, lname, uname, email, password, dob))
-        
+
         conn.commit()        
         cursor.close()
         conn.close()
@@ -207,5 +207,30 @@ def player_profile(username):
 
     return render_template('player_profile.html', user=username, details=profile_details, friends=friends)
 
+@app.route('/bank')
+def bank():
+    player_id = session['id']
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    ownership_query = f'''
+    SELECT b.account_no, b.account_balance, b.account_type
+    FROM bank_accounts b
+    INNER JOIN ownership w ON b.account_no = w.account_no
+    INNER JOIN players p ON p.player_id = w.player_id
+    WHERE p.player_id = {player_id}
+    ''' 
+    cursor.execute(ownership_query)
+    account = cursor.fetchone()
+
+    if not account:
+        redirect(url_for(create_bank_account))
+    else:
+        return account
+
+@app.route('/onboarding')
+def create_bank_account():
+    return "pass"
 if __name__ == "__main__":
     app.run(debug=True)
