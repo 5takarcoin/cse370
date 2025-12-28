@@ -44,6 +44,11 @@
             <a href="/signup" class="text-blue-600 hover:underline">Sign up</a>
         </p>
     </div>
+    <ul>
+        {% for m in get_flashed_messages() %}
+            <li>{{m}}</li>
+        {% endfor %}
+    </ul>
 
 </body>
 </html>

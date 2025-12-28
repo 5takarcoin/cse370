@@ -56,7 +56,8 @@ def login():
             session['id'] = player['player_id']
             return redirect(url_for('home'))
         else:
-            return "Invalid"
+            flash("Username or password is incorrect!")
+            return render_template('login.html')
         cursor.close()
         conn.close()
     else:
