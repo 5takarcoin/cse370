@@ -229,7 +229,7 @@ def player_profile(username):
         friends=friends
         )
 
-@app.route('/bank')
+@app.route('/bank/')
 def bank():
     player_id = session['id']
 
@@ -251,7 +251,7 @@ def bank():
     else:
         return render_template('bank.html', account=account)
 
-@app.route('/onboarding', methods=["POST", "GET"])
+@app.route('/bank/signup', methods=["POST", "GET"])
 def create_bank_account():
     valid = False
     conn = get_db_connection()
@@ -307,5 +307,33 @@ def create_bank_account():
             return redirect(url_for('bank'))
     conn.close()
     return render_template('bank_registration.html', account_types=account_types)
+
+    @app.route('bank/deposit', methods=["GET", "POST"])
+    def deposit():
+        if request.method == "POST":
+            amount = request.form['amount']
+            balance_query = 'SELECT personal_balance FROM players WHERE player_id = %s'
+            update_query = '''
+                UPDATE bank_accounts b
+                INNER JOIN ownership o ON o.account_no = b.account_no
+                INNER JOIN players p on p.player_id = o.player_id
+                SET
+                    b.account_balance = b.account_balance + %s,
+                    p.personal_balance = p.personal_balance - %s
+                WHERE p.player_id = %s;
+            ''' 
+            player_id = session['id']
+
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(balance_query)
+                row = cursor.fetchone()
+                balance = row['balance']
+            if amount < balance:
+                cursor.execute(update_query)
+            else:
+                flash("You don't have that much money!")
+        return render_template('deposit.html')
+
 if __name__ == "__main__":
     app.run(debug=True)
