@@ -20,16 +20,31 @@
     <section class="section">
         <div class="container">
             <h1 class="title has-text-centered mb-5">Games</h1>
+
+
             <div class="columns is-multiline is-centered">
                 {% for game in games %}
                 <div class="column is-12-mobile is-6-tablet is-4-desktop">
-                    <div class="box game-card" onclick="location.href='/games/{{ game.normalized_name }}'">
-                        <p class="has-text-centered is-size-5">{{ game.game_name }}</p>
+                    <div class="box game-card"
+                        onclick="location.href='/games/{{ game.normalized_name }}'">
+                        <p class="has-text-centered is-size-5">
+                            {{ game.game_name }}
+                        </p>
                     </div>
                 </div>
                 {% endfor %}
             </div>
+     
         </div>
     </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="box game-card">See Leaderboard</div>
+        </div>
+    </section>
+
+    <a href="/">Go back</a>
+
 </body>
 </html>

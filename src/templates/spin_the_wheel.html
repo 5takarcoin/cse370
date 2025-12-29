@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spin the Wheel</title>
+    <link rel="stylesheet" href="{{ url_for('games.static', filename='css/stw.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <h1>🎡 Spin the Wheel</h1>
+
+    <div class="wheel-wrapper">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="400" height="400"></canvas>
+    </div>
+
+    <button id="spinBtn">SPIN</button>
+
+
+    <p id="result"></p>
+</div>
+
+<a href="/games">Go back</a>
+
+<script src="{{ url_for('games.static', filename='js/stw.js') }}"></script>
+</body>
+</html>

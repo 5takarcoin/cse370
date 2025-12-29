@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Leaderboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+</head>
+<body>
+<section class="section">
+    <div class="container">
+        <h1 class="title has-text-centered mb-6">Leaderboard - {{ game_name }}</h1>
+
+        {% if top_players %}
+        <table class="table is-fullwidth is-striped is-hoverable">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player ID</th>
+                    <th>Score</th>
+                    {% if game_name == "All" %}
+                    <th>Game</th>
+                    {% endif %}
+                </tr>
+            </thead>
+           <tbody>
+                {% for player in top_players %}
+                <tr>
+                    <td>{{ loop.index }}</td>  <!-- rank -->
+                    <td>{{ player.player_id }}</td>
+                    <td>{{ player.max_score }}</td>
+                     {% if game_name == "All" %}
+                    <td>{{ player.game_name }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="has-text-centered">No scores yet for this game.</p>
+        {% endif %}
+
+        <div class="has-text-centered mt-4">
+            <a class="button is-link" href="/games">Back to Games</a>
+        </div>
+    </div>
+</section>
+</body>
+</html>
