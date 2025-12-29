@@ -3,6 +3,7 @@ from flask import request, redirect, url_for
 from flask import session, flash, get_flashed_messages
 from flask import render_template
 from markupsafe import escape
+from datetime import date
 
 from db import get_db_connection
 
@@ -104,7 +105,8 @@ def signup():
         conn.close()
 
         if valid: return redirect(url_for('login'))
-    return render_template('signup.html')
+    today = date.today().isoformat()
+    return render_template('signup.html', today=today)
 
 @app.route("/friends", methods=['GET', 'POST'])
 def friends():
