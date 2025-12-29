@@ -14,6 +14,7 @@ VALUES
 (2, 1);
 INSERT INTO games (game_name)
 VALUES
+('Coin Toss');
 ('Black Jack'),
 ('Spin The Wheel'),
 ('Rock-Paper-Scissors');
