@@ -10,7 +10,15 @@
 <body>
 <section class="section">
     <div class="container has-text-centered">
+        <h3>Session no: {{ session_id }}</h3>
+        <h4 id="score">Score: 0</h4>
         <h1 class="title mb-6">Coin Toss Game</h1>
+
+        <div class="buttons is-centered mb-4">
+            <button class="button is-primary" id="pick-heads">Heads</button>
+            <button class="button is-danger" id="pick-tails">Tails</button>
+        </div>
+
         <div class="coin-container">
             <div class="coin" id="coin">
                 <!-- Heads SVG Image -->
@@ -28,6 +36,8 @@
         <p class="mt-4" id="result" style="font-size:1.5rem; font-weight:bold;"></p>
     </div>
 </section>
+
+<a href="/games">Go back</a>
 
 <script src="{{ url_for('games.static', filename='js/coin.js') }}"></script>
 </body>
