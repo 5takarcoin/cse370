@@ -14,7 +14,9 @@
         <li>Personal Balance: ${{details['personal_balance']}}</li>
         <li>Bank Balance: $12000.00</li>
         <li>Favourite Game: Rock-Paper-Scissors</li>
+        {% if friends %}
         <li>Best Friend: <a href="{{url_for('player_profile', username=friends[0]['username'])}}">{{friends[0]['name']}}</a></li>
+        {% endif %}
     </ul>
     <h2>Friends</h2>
     <ul>
