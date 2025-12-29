@@ -230,7 +230,6 @@ def player_profile(username):
 
     return render_template(
         'player_profile.html',
-        user=username,
         details=profile_details,
         friends=friends
         )
@@ -314,32 +313,65 @@ def create_bank_account():
     conn.close()
     return render_template('bank_registration.html', account_types=account_types)
 
-    @app.route('bank/deposit', methods=["GET", "POST"])
-    def deposit():
-        if request.method == "POST":
-            amount = request.form['amount']
-            balance_query = 'SELECT personal_balance FROM players WHERE player_id = %s'
-            update_query = '''
-                UPDATE bank_accounts b
-                INNER JOIN ownership o ON o.account_no = b.account_no
-                INNER JOIN players p on p.player_id = o.player_id
-                SET
-                    b.account_balance = b.account_balance + %s,
-                    p.personal_balance = p.personal_balance - %s
-                WHERE p.player_id = %s;
-            ''' 
-            player_id = session['id']
-
-            conn = get_db_connection()
+@app.route('/bank/deposit', methods=["GET", "POST"])
+def deposit():
+    conn = get_db_connection()
+    player_id = session['id']
+    if request.method == "POST":
+        amount = float(request.form['amount'])
+        balance_query = 'SELECT personal_balance FROM players WHERE player_id = %s'
+        update_query = '''
+            UPDATE bank_accounts b
+            INNER JOIN ownership o ON o.account_no = b.account_no
+            INNER JOIN players p on p.player_id = o.player_id
+            SET
+                b.account_balance = b.account_balance + %s,
+                p.personal_balance = p.personal_balance - %s
+            WHERE p.player_id = %s;
+        ''' 
+        with conn.cursor() as cursor:
+            cursor.execute(balance_query, (player_id,))
+            row = cursor.fetchone()
+            balance = row['personal_balance']
+        if amount < balance:
             with conn.cursor() as cursor:
-                cursor.execute(balance_query)
-                row = cursor.fetchone()
-                balance = row['balance']
-            if amount < balance:
-                cursor.execute(update_query)
-            else:
-                flash("You don't have that much money!")
-        return render_template('deposit.html')
+                cursor.execute(update_query, (amount, amount, player_id))
+        else:
+            flash("You don't have that much money!")
+    profile_query = '''
+        SELECT b.account_no, p.personal_balance, b.account_balance
+        FROM bank_accounts b
+        INNER JOIN ownership w ON b.account_no = w.account_no
+        INNER JOIN players p ON p.player_id = w.player_id
+        WHERE p.player_id = %s
+    '''
+    with conn.cursor() as cursor:
+        cursor.execute(profile_query, (player_id,))
+        row = cursor.fetchone()
+        account_no = row['account_no']
+        personal_balance = row['personal_balance']
+        account_balance = row['account_balance']
+
+    conn.commit()
+    conn.close()
+    return render_template(
+        'deposit.html',
+        account_no = account_no,
+        personal_balance = personal_balance,
+        bank_balance = account_balance
+        )
+
+@app.route('/bank/withdraw', methods=["GET", "POST"])
+def withdraw():
+    return "Not implemented yet"
+
+@app.route('/bank/transfer', methods=["GET", "POST"])
+def transfer():
+    return "Not implemented yet"
+
+@app.route('/bank/transactions', methods=["GET", "POST"])
+def transactions():
+    return "Not implemented yet"
 
 if __name__ == "__main__":
     app.run(debug=True)

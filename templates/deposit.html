@@ -6,23 +6,25 @@
     <title>Deposit money</title>
 </head>
 <body>
-    <form method="post">
+    <h1>Deposit money</h1>
+    <p>Make sure you are logged into the right account and have sufficient balance</p>
 
+    <h2>Your details</h2>
+    <ul>
+        <li>Name: {{ session['fname'] }} {{ session['lname'] }}</li>
+        <li>Account No: {{ account_no }}</li>
+        <li>Personal Balance: {{ personal_balance }}</li>
+        <li>Bank Balance: {{ bank_balance }}</li>
+    </ul>
+    <form method="post">
         <div>
             <label for="amount">Deposit Amount</label>
-            <input type="number" min="{{5}}" step="1" name="deposit" required>
-        </div>
-
-        <div>
-            <input type="checkbox" name="confirm" required>
-            <label for="confirm">I agree to sell my soul</label>
+            <input type="number" min="{{5}}" step="1" name="amount" required>
         </div>
 
         <div>
             <input type="submit" value="submit">
         </div>
-
-    </form>
         <ul>
         {% for m in get_flashed_messages() %}
             <li>{{m}}</li>
