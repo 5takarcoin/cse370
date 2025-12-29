@@ -1,0 +1,19 @@
+body { background: #ffff; }
+
+.rps-btn {
+    width: 150px;
+    font-size: 1.5rem;
+    transition: transform 0.2s;
+}
+
+.rps-btn:hover {
+    transform: scale(1.1);
+}
+
+#result {
+    margin-top: 30px;
+}
+
+#score {
+    color: #3273dc; /* Bulma primary color */
+}

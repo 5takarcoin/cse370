@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rock Paper Scissors</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+<link rel="stylesheet" href="{{ url_for('games.static', filename='css/rps.css') }}">
+</head>
+<body>
+<section class="section">
+    <div class="container has-text-centered">
+        <h1 class="title mb-6">Rock Paper Scissors</h1>
+        
+        <div class="buttons is-centered mb-5">
+            <button class="button is-large rps-btn" data-choice="rock">✊ Rock</button>
+            <button class="button is-large rps-btn" data-choice="paper">✋ Paper</button>
+            <button class="button is-large rps-btn" data-choice="scissors">✌️ Scissors</button>
+        </div>
+
+        <div id="result" class="is-size-4 has-text-weight-bold"></div>
+        <div id="score" class="mt-3 is-size-5"></div>
+    </div>
+</section>
+
+<script src="{{ url_for('games.static', filename='js/rps.js') }}"></script>
+</body>
+</html>

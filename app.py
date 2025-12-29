@@ -4,9 +4,13 @@ from flask import session, flash, get_flashed_messages
 from flask import render_template
 from markupsafe import escape
 
+from src.games import games
+
 from db import get_db_connection
 
 app = Flask(__name__)
+app.register_blueprint(games, url_prefix="/games")
+
 app.secret_key = '123'
 
 @app.route("/", methods=['POST', 'GET'])
