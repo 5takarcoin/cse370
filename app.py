@@ -115,83 +115,89 @@ def signup():
 @app.route("/friends", methods=['GET', 'POST'])
 def friends():
     player_id = session['id']
-
     conn = get_db_connection()
-    cursor = conn.cursor()
-    match = None
-    is_self = False
 
     if request.method == 'POST':
         if 'friend_id' in request.form:
-            receiver_id = session['id']
-            sender_id = request.form["friend_id"]
+            with conn.cursor() as cursor:
+                sender_id = request.form["friend_id"]
+                receiver_id = session['id']
 
-            insertion_query = f'''
-            INSERT INTO friendships(befriender_id, befriended_id)
-            VALUES({sender_id}, {receiver_id})'''
-            cursor.execute(insertion_query)
+                insertion_query = '''
+                    INSERT INTO friendships (befriender_id, befriended_id)
+                    VALUES (%s, %s);
+                '''
+                deletion_query = '''
+                    DELETE FROM friend_requests 
+                    WHERE sender_id = %s AND receiver_id = %s;
+                '''
 
-            deletion_query = f'''
-            DELETE FROM friend_requests 
-            WHERE sender_id = {sender_id} AND receiver_id = {receiver_id}
-            '''
-            cursor.execute(deletion_query)
-            cursor.close()
-            conn.commit()
-            conn.close()
-
-            return redirect(url_for('friends'))
+                cursor.execute(insertion_query, (sender_id, receiver_id))
+                cursor.execute(deletion_query, (sender_id, receiver_id))
+                conn.commit()
         else:
-            # Check if user is in database
-            username = request.form['username']
-            sql = f"SELECT player_id, username FROM players WHERE username = '{username}';"
-            cursor.execute(sql)
-            matches = cursor.fetchone()
-            if matches:
-                match = True
-                receiver_id = matches['player_id']
-                if receiver_id == player_id:
-                    is_self = True
+            with conn.cursor() as cursor:
+                target = request.form['username']
+                locating_query = '''
+                    SELECT player_id
+                    FROM players
+                    WHERE username = %s;
+                '''
+                cursor.execute(locating_query, (target,))
+                match = cursor.fetchone()
+                if match:
+                    receiver_id = match['player_id']
+                    if receiver_id == player_id:
+                        flash("You cannot send a friend request to yourself!")
+                    else:
+                        insertion_query = '''
+                            INSERT INTO friend_requests (sender_id, receiver_id)
+                            VALUES (%s, %s);
+                        '''
+                        cursor.execute(insertion_query, (player_id, receiver_id))
+                        conn.commit()
+                        flash("Friend request sent!")
                 else:
-                    sql = f"INSERT INTO friend_requests (sender_id, receiver_id) VALUES ({player_id}, {receiver_id});"
-                    cursor.execute(sql)
-                    conn.commit()
-            else:
-                match = False
+                    flash("Player not found!")
 
-    friendship_query = f'''
-    SELECT CONCAT(p.first_name, " ", p.last_name) AS name, p.username
-    FROM (
-        SELECT befriended_id AS friend_id
-        FROM friendships
-        WHERE befriender_id = "{player_id}"
-        
-        UNION
+    with conn.cursor() as cursor:
+        frn_query = '''
+                SELECT
+                    CONCAT(p.first_name, " ", p.last_name) AS name,
+                    p.username
+                FROM (
+                    SELECT befriended_id AS friend_id
+                    FROM friendships
+                    WHERE befriender_id = %s
+            
+                    UNION
 
-        SELECT befriender_id AS friend_id
-        FROM friendships
-        WHERE befriended_id = "{player_id}"
-    ) AS t
+                    SELECT befriender_id AS friend_id
+                    FROM friendships
+                    WHERE befriended_id = %s
+                ) AS t
+                INNER JOIN players p 
+                ON p.player_id = t.friend_id
+                ORDER BY p.personal_balance DESC;
+        '''
+        cursor.execute(frn_query, (player_id, player_id))
+        frn = cursor.fetchall()
 
-    INNER JOIN players p 
-    ON p.player_id = t.friend_id
-    ORDER BY p.personal_balance DESC;
-    '''
-    cursor.execute(friendship_query)
-    friends = cursor.fetchall()
+    with conn.cursor() as cursor:
+        frq_query = '''
+            SELECT
+                CONCAT(p.first_name, ' ', p.last_name) as name,
+                p.username,
+                p.player_id
+            FROM players p
+            INNER JOIN friend_requests frq ON frq.sender_id = p.player_id
+            WHERE frq.receiver_id = %s
+        '''
+        cursor.execute(frq_query, (player_id,))
+        frq = cursor.fetchall()
     
-    frq_query = f'''
-    SELECT CONCAT(p.first_name, ' ', p.last_name) as name, p.username, p.player_id
-    FROM players p
-    INNER JOIN friend_requests frq ON frq.sender_id = p.player_id
-    WHERE frq.receiver_id = {player_id}
-    '''
-    cursor.execute(frq_query)
-    requests = cursor.fetchall()
-    
-    cursor.close()
     conn.close()
-    return render_template("friends.html", match=match, is_self=is_self, frn=friends, frq=requests)
+    return render_template("friends.html", frn=frn, frq=frq)
 
 @app.route("/player/<username>")
 def player_profile(username):
