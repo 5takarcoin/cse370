@@ -6,7 +6,7 @@ CREATE TABLE players (
         email VARCHAR(255) NOT NULL UNIQUE,
         password CHAR(60) NOT NULL,
         date_of_birth DATE NOT NULL,
-        personal_balance DECIMAL(10,2) NOT NULL DEFAULT 200.00
+        personal_balance DECIMAL(10,2) NOT NULL DEFAULT 500.00
 );
 
 CREATE TABLE friend_requests(
@@ -53,7 +53,7 @@ CREATE TABLE game_sessions (
 
 CREATE TABLE bank_accounts (
     account_no VARCHAR(100) PRIMARY KEY,
-    account_type CHAR(6) NOT NULL,
+    account_type CHAR(4) NOT NULL,
     account_balance DECIMAL(10, 2)
 );
 
@@ -78,19 +78,18 @@ CREATE TABLE transactions (
 
 CREATE TABLE stocks (
         stock_id INT PRIMARY KEY AUTO_INCREMENT,
-        abbreviation VARCHAR(5) NOT NULL,
+        abbreviation CHAR(3) NOT NULL,
         exchange CHAR(4) NOT NULL,
         UNIQUE (abbreviation, exchange)
 );
 
 CREATE TABLE investments (
-        investment_id INT PRIMARY KEY AUTO_INCREMENT,
-        player_id INT NOT NULL,
-        stock_id INT NOT NULL,
+        player_id INT,
+        stock_id INT,
+        investment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
         investment_amount INT NOT NULL,
-        investment_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (player_id) REFERENCES players(player_id),
-        FOREIGN KEY (stock_id) REFERENCES stocks(stock_id)
-
+        FOREIGN KEY (stock_id) REFERENCES stocks(stock_id),
+        PRIMARY KEY(player_id, stock_id, investment_date)
 );
 
