@@ -86,7 +86,7 @@ CREATE TABLE stocks (
 CREATE TABLE investments (
         player_id INT,
         stock_id INT,
-        investment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+        investment_date DATETIME(0) DEFAULT CURRENT_TIMESTAMP,
         investment_amount INT NOT NULL,
         FOREIGN KEY (player_id) REFERENCES players(player_id),
         FOREIGN KEY (stock_id) REFERENCES stocks(stock_id),
