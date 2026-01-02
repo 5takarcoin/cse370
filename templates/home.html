@@ -10,11 +10,11 @@
 <h2>Hello, <a href="{{url_for('player_profile', username=username)}}">{{fname}} {{lname}}!</a></h2>
 <h3>Menu</h3>
 <ul>
-    <li><a href="{{url_for('player_profile', username=username)}}">My profile</a></li>
-    <li><a href="{{url_for('friends')}}">Friends</a></li>
-    <li><a href="{{url_for('bank')}}">Bank</a></li>
-    <li><a href="#">Stock Market</a></li>
-    <li><a href="{{url_for('games.games_home')}}">Games</a></li>
+    <li><a href="{{ url_for('player_profile', username=username) }}">My profile</a></li>
+    <li><a href="{{ url_for('friends') }}">Friends</a></li>
+    <li><a href="{{ url_for('bank') }}">Bank</a></li>
+    <li><a href="{{ url_for('stocks') }}">Stock Market</a></li>
+    <li><a href="{{ url_for('games.games_home')}}">Games</a></li>
 </ul>
 
 <form method="POST">

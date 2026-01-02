@@ -645,14 +645,15 @@ def get_stock_rate(func):
     degree = minute*6
     rad = (degree/180)*math.pi
     f = stock_funcs[func]
-    price = min(max(1, abs(f(rad))*1000), 10000000)
+    price = round(min(max(1, abs(f(rad))*1000), 10000000))
     return price
 
-@app.route('/stocks/')
+@app.route('/stocks', methods=['GET', 'POST'])
 def stocks():
+    player_id = session['id']
     conn = get_db_connection()
     market_query = '''
-        SELECT abbreviation FROM stocks
+        SELECT stock_id, abbreviation, exchange FROM stocks
     '''
     with conn.cursor() as cursor:
         cursor.execute(market_query)
@@ -662,18 +663,124 @@ def stocks():
             s['rate'] = rate
     investments_query = '''
         SELECT
-            s.stock_id
+            s.stock_id,
             s.abbreviation,
             s.exchange,
-            i.investment_amount
+            i.investment_amount,
             i.investment_date
-            FROM investments i
-            INNER JOIN players p ON p.player_id = i.player_id
-            INNER JOIN stocks s ON s.stock_id = i.stock_id
-            WHERE p.player_id = %s
+        FROM investments i
+        INNER JOIN players p ON p.player_id = i.player_id
+        INNER JOIN stocks s ON s.stock_id = i.stock_id
+        WHERE p.player_id = %s;
 
     '''
-    return stocks
+    with conn.cursor() as cursor:
+        cursor.execute(investments_query, (player_id,))
+        invs = cursor.fetchall()
+    
+    submitting_data = request.method == "POST"
+    selling = submitting_data and 'sell' in request.form
+    buying = submitting_data and not selling
+
+    if selling:
+        stock_query = '''
+            SELECT s.abbreviation, i.investment_amount
+            FROM stocks s
+            INNER JOIN investments i ON i.stock_id = s.stock_id
+            INNER JOIN players p ON p.player_id = i.player_id
+            WHERE
+                i.stock_id=%s AND
+                i.player_id=%s AND
+                i.investment_date LIKE %s;
+        '''
+        deletion_query = '''
+            DELETE FROM investments
+            WHERE
+                stock_id=%s AND
+                player_id=%s AND
+                investment_date LIKE %s;
+        '''
+        update_query = '''
+            UPDATE players
+            SET personal_balance = personal_balance + %s
+            WHERE player_id=%s
+        '''
+        for s in request.form.getlist('sell'):
+            stock_id, purchase_date = s.split('|')
+            purchase_date = purchase_date + "%"
+            stock_id = int(stock_id)
+            player_id = player_id
+
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    stock_query,
+                    (stock_id, player_id, purchase_date)
+                )
+                row = cursor.fetchone()
+            abv = row['abbreviation']
+            rate = get_stock_rate(abv)
+            amount = row['investment_amount']
+            selling_price = rate * amount
+
+            
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    deletion_query,
+                    (stock_id, player_id, purchase_date)
+                )
+                cursor.execute(update_query, (selling_price, player_id))
+                conn.commit()
+        conn.close()
+        return redirect(url_for('stocks'))
+    elif buying:
+        stock_id = request.form['stock']
+        amount = float(request.form['amount'])
+
+        stock_query = '''
+            SELECT s.abbreviation FROM stocks s
+            WHERE s.stock_id = %s;
+        '''
+        validation_query = '''
+            SELECT personal_balance FROM players
+            WHERE player_id = %s
+        '''
+        insertion_query = '''
+            INSERT INTO investments (stock_id, player_id, investment_amount)
+            VALUES (%s, %s, %s);
+        '''
+        update_query = '''
+            UPDATE players
+            SET personal_balance = personal_balance - %s
+            WHERE player_id = %s
+        '''
+        with conn.cursor() as cursor:
+            cursor.execute(stock_query, (stock_id,))
+            row = cursor.fetchone()
+
+        abv = row['abbreviation']
+        buying_price = get_stock_rate(abv) * amount
+
+        with conn.cursor() as cursor:
+            cursor.execute(validation_query, (player_id,))
+            row = cursor.fetchone()
+        
+        balance = row['personal_balance']
+        valid = buying_price <= balance
+
+        if valid:
+            with conn.cursor() as cursor:
+                cursor.execute(insertion_query, (stock_id, player_id, amount))
+                cursor.execute(update_query, (buying_price, player_id))
+
+                conn.commit()
+                conn.close()
+                flash("Stock bought successfully!")
+                return redirect(url_for('stocks'))
+        else:
+            flash("You don't have enough money to do that!")
+
+    conn.close()
+    return render_template('stocks.html', stocks=stocks, investments=invs)
     
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stocks</title>
+</head>
+<body>
+    <h2>Rates (per unit)</h1>
+    <table>
+        <thead>
+            <th>Stock</th>
+            <th>Price</th>
+        </thead>
+        <tbody>
+            {% for s in stocks %}
+            <tr>
+                <td> {{ s['abbreviation']}}:{{s['exchange']}} </td>
+                <td> ${{s['rate']}} </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2>Purchase</h2>
+    <form action="{{ url_for('stocks') }}" method="POST">
+        <div>
+            <label for="stock">Stock</label>
+            <select name="stock" required>
+                <option value="">Select one</option>
+                {% for s in stocks %}
+                <option value="{{ s['stock_id'] }}">{{ s['abbreviation'] }}:{{ s['exchange'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="amount">Amount</label>
+            <input type="number" min="{{1}}" step="1" name="amount" required>
+        </div>
+
+        <div>
+            <input type="submit" value="submit">
+        </div>
+    </form>
+    
+    <h2>Investments</h2>
+    <form action="{{ url_for('stocks') }}" method="POST">
+    <table>
+        <thead>
+            <th>Stock</th>
+            <th>Amount Bought</th>
+            <th>Purchase Date</th>
+            <th>Sell</th>
+        </thead>
+        <tbody>
+            {% for i in investments %}
+            <tr>
+                <td>{{ i['abbreviation'] }}:{{ i['exchange'] }}</td>
+                <td>{{ i['investment_amount'] }}</td>
+                <td>{{ i['investment_date'] }}</td>
+                <td>
+                    <input
+                        type="checkbox"
+                        name="sell"
+                        value="{{ i['stock_id'] }}|{{ i['investment_date'] }}"
+                    >
+                </td>
+                {% endfor %}
+            </tr>  
+        </tbody>
+    </table>
+        <input type="submit" value="sell">
+    </form>
+    <ul>
+        {% for m in get_flashed_messages() %}
+            <li>{{m}}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
