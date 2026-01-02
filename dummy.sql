@@ -10,20 +10,20 @@ VALUES
 (2, 3);
 INSERT INTO friendships (befriender_id, befriended_id)
 VALUES
-(1, 3),
-(2, 1);
+(1, 3);
 INSERT INTO games (game_name)
 VALUES
-('Coin Toss');
+('Coin Toss'),
 ('Black Jack'),
 ('Spin The Wheel'),
 ('Rock-Paper-Scissors');
 INSERT INTO game_genres (game_id, game_genre)
 VALUES
-(1, 'Arcade'),
-(1, 'Shooter'),
+(1, 'Folk'),
+(2, 'Card'),
+(3, 'Carnival'),
 (2, 'Strategy'),
-(3, 'Sports');
+(4, 'Folk');
 INSERT INTO game_sessions 
 (game_id, player_id, session_no, session_start_time, session_end_time, score)
 VALUES
