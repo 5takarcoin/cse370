@@ -49,8 +49,9 @@ them = request.for["friend_id"]
 existing_query = f'''
     SELECT sender_id
     FROM friend_requests
-    WHERE (sender_id = %s AND receiver_id =  %s)
-    OR (sender_id = %s AND receiver_id = %s);
+    WHERE
+        (sender_id = %s AND receiver_id =  %s) OR
+        (sender_id = %s AND receiver_id = %s);
 '''
 -- existing req gets fetched
 cursor.execute(existing_query, (me, them, them, me))

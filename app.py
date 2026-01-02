@@ -117,48 +117,91 @@ def friends():
     player_id = session['id']
     conn = get_db_connection()
 
-    if request.method == 'POST':
-        if 'friend_id' in request.form:
-            with conn.cursor() as cursor:
-                sender_id = request.form["friend_id"]
-                receiver_id = session['id']
+    submitting_data = request.method == 'POST'
+    accepting_frq = submitting_data and 'friend_id' in request.form
+    sending_frq = submitting_data and not accepting_frq
 
-                insertion_query = '''
-                    INSERT INTO friendships (befriender_id, befriended_id)
-                    VALUES (%s, %s);
-                '''
-                deletion_query = '''
-                    DELETE FROM friend_requests 
-                    WHERE sender_id = %s AND receiver_id = %s;
-                '''
+    if accepting_frq:
+        insertion_query = '''
+            INSERT INTO friendships (befriender_id, befriended_id)
+            VALUES (%s, %s);
+        '''
+        deletion_query = '''
+            DELETE FROM friend_requests 
+            WHERE sender_id = %s AND receiver_id = %s;
+        '''
+        sender = player_id
+        receiver = request.form["friend_id"]
+        with conn.cursor() as cursor:
+            cursor.execute(insertion_query, (sender, receiver))
+            cursor.execute(deletion_query, (sender, receiver))
+            conn.commit()
 
-                cursor.execute(insertion_query, (sender_id, receiver_id))
-                cursor.execute(deletion_query, (sender_id, receiver_id))
-                conn.commit()
-        else:
-            with conn.cursor() as cursor:
-                target = request.form['username']
-                locating_query = '''
-                    SELECT player_id
-                    FROM players
-                    WHERE username = %s;
+    elif sending_frq:
+        target_username = request.form['username']
+        locating_query = '''
+                SELECT player_id FROM players
+                WHERE username = %s;
+            '''
+        with conn.cursor() as cursor:
+            cursor.execute(locating_query, (target_username,))
+            match = cursor.fetchone()
+            user_exists = bool(match)
+
+        if user_exists:
+            target = match['player_id']
+            player = player_id
+
+            user_is_self = target == player
+            if user_is_self:
+                flash('You cannot add yourself as a friend!')
+            else:
+                existing_frq_query = '''
+                    SELECT sender_id as sender FROM friend_requests
+                    WHERE
+                        (sender_id = %s AND receiver_id =  %s) OR
+                        (sender_id = %s AND receiver_id = %s);
                 '''
-                cursor.execute(locating_query, (target,))
-                match = cursor.fetchone()
-                if match:
-                    receiver_id = match['player_id']
-                    if receiver_id == player_id:
-                        flash("You cannot send a friend request to yourself!")
-                    else:
-                        insertion_query = '''
-                            INSERT INTO friend_requests (sender_id, receiver_id)
-                            VALUES (%s, %s);
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        existing_frq_query,
+                        (target, player, player, target)
+                        )
+                    row = cursor.fetchone()
+                    existing_frq = bool(row)
+                if existing_frq:
+                    resending = row['sender'] == player
+                    accepting = row['sender'] == target
+                    if resending:
+                        flash('You already sent this person a friend request')
+                    elif accepting:
+                        deletion_query = '''
+                            DELETE FROM friend_requests
+                            WHERE sender_id = %s AND receiver_id = %s
                         '''
-                        cursor.execute(insertion_query, (player_id, receiver_id))
+                        insertion_query = '''
+                            INSERT INTO friendships (
+                                befriender_id,
+                                befriended_id
+                            )
+                            VALUES (%s, %s)
+                        '''
+                        with conn.cursor() as cursor:
+                            cursor.execute(deletion_query, (target, player))
+                            cursor.execute(insertion_query, (target, player))
+                            conn.commit()
+                        flash('Friend request accepted')
+                else:    
+                    insertion_query = '''
+                        INSERT INTO friend_requests (sender_id, receiver_id)
+                        VALUES (%s, %s);
+                    '''
+                    with conn.cursor() as cursor:
+                        cursor.execute(insertion_query, (player, target))
                         conn.commit()
-                        flash("Friend request sent!")
-                else:
-                    flash("Player not found!")
+                    flash("Friend request sent!")
+        else:
+            flash("Player not found!")
 
     with conn.cursor() as cursor:
         frn_query = '''
