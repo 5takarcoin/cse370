@@ -1,5 +1,5 @@
 from flask import Flask
-from flask import request, redirect, url_for
+from flask import request, redirect, url_for, abort
 from flask import session, flash, get_flashed_messages
 from flask import render_template
 from markupsafe import escape
@@ -245,42 +245,67 @@ def friends():
 @app.route("/player/<username>")
 def player_profile(username):
     conn = get_db_connection()
-    cursor = conn.cursor()
     
-    profile_query = f'''
-    SELECT CONCAT(first_name, " ", last_name) AS name, TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) AS age, personal_balance 
-    FROM players 
-    WHERE username="{username}";
+    profile_query = '''
+        SELECT
+            username,
+            player_id,
+            first_name,
+            CONCAT(first_name, " ", last_name) AS name,
+            TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) AS age,
+            personal_balance 
+        FROM players 
+        WHERE username=%s;
     '''
-    cursor.execute(profile_query)
-    profile_details = cursor.fetchone()
+    with conn.cursor() as cursor:
+        cursor.execute(profile_query, (username,))
+        profile_details = cursor.fetchone()
+        profile_exists = bool(profile_details)
 
-    friendship_query = f'''
-    SELECT CONCAT(p.first_name, " ", p.last_name) AS name, p.username
-    FROM (SELECT befriended_id AS friend_id
-    FROM friendships
-    WHERE befriender_id = (SELECT player_id FROM players WHERE username = "{username}")
-    
-    UNION
+    if profile_exists:
+        player = session['id']
+        target = profile_details['player_id']
+        mutuals_query = '''
+            SELECT
+                username,
+                CONCAT(first_name, ' ', last_name) AS name
+            FROM players
+            WHERE
+                player_id IN (
+                    SELECT befriended_id AS friend_id
+                    FROM friendships
+                    WHERE befriender_id = %s
 
-    SELECT befriender_id AS friend_id
-    FROM friendships
-    WHERE befriended_id = (SELECT player_id FROM players WHERE username = "{username}")) 
-    AS t
+                    UNION
 
-    INNER JOIN players p 
-    ON p.player_id = t.friend_id
-    ORDER BY p.personal_balance DESC;
-    '''
-    cursor.execute(friendship_query)
-    friends = cursor.fetchall()
-    cursor.close()
+                    SELECT befriender_id AS friend_id
+                    FROM friendships
+                    WHERE befriended_id = %s
+                ) AND player_id IN (
+                    SELECT befriended_id AS friend_id
+                    FROM friendships
+                    WHERE befriender_id = %s
+
+                    UNION
+
+                    SELECT befriender_id AS friend_id
+                    FROM friendships
+                    WHERE befriended_id = %s
+                );
+        '''
+
+        with conn.cursor() as cursor:
+            cursor.execute(mutuals_query, (player, player, target, target))
+            mutuals = cursor.fetchall()
+    else:
+        conn.close()
+        abort(404)
+
     conn.close()
-
     return render_template(
         'player_profile.html',
         details=profile_details,
-        friends=friends
+        mutuals=mutuals
         )
 
 @app.route('/bank/')
