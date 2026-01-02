@@ -3,33 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{session['fname']}}'s profile</title>
+    <title>{{details['first_name']}}'s profile</title>
 </head>
 <body>
-    <h1>
-        <a href='{{ url_for("player_profile", username=session["username"]) }}'>
-        {{session['fname']}} {{session['lname']}}
-        </a>
-    </h1>
     <h2>User Details</h2>
     <ul>
         <li>
-            <a href='{{ url_for("player_profile", username=session["username"]) }}'>
-                {{session['fname']}} {{session['lname']}}
+            <a href='{{ url_for("player_profile", username=details["username"]) }}'>
+                {{ details['name'] }}
             </a>
         </li>
         <li>Age: {{details['age']}}</li>
         <li>Personal Balance: ${{details['personal_balance']}}</li>
-        <li>Bank Balance: $12000.00</li>
-        <li>Favourite Game: Rock-Paper-Scissors</li>
-        {% if friends %}
-        <li>Best Friend: <a href="{{url_for('player_profile', username=friends[0]['username'])}}">{{friends[0]['name']}}</a></li>
-        {% endif %}
     </ul>
-    <h2>Friends</h2>
+    <h2>
+        {% if details["username"] == session["username"] %}
+        Friends
+        {% else %}
+        Mutual Friends
+        {% endif %}
+    </h2>
     <ul>
-    {% for f in friends %}
-        <li><a href="{{url_for('player_profile', username=f['username'])}}">{{f['name']}}</a></li>
+    {% for m in mutuals %}
+        <li><a href="{{ url_for('player_profile', username=m['username']) }}">{{m['name']}}</a></li>
     {% endfor %}
     </ul>
 </body>
