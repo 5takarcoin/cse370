@@ -69,34 +69,19 @@ from flask import redirect, render_template, session
 
 @games.route("/coin_toss")
 def coin_toss():
-    if 'game_session_id' not in session:
-        return redirect('/games')
-
-    # Change
-    session_id = create_a_session_for_game(900)
-    
+    session_id = create_a_session_for_game(0)
     return render_template("coin_toss.html", session_id=session_id)
 
 
 @games.route("/rock_paper_scissors")
 def rock_paper_scissors():
-    if 'game_session_id' not in session:
-        return redirect('/games')
-
-    # Change
-    create_a_session_for_game(902)
-
+    session_id = create_a_session_for_game(1)
     return render_template("rock_paper_scissors.html", session_id=session_id)
 
 
 @games.route("/spin_the_wheel")
 def spin_the_wheel():
-    if 'game_session_id' not in session:
-        return redirect('/games')
-
-    # Change
-    create_a_session_for_game(901)
-
+    session_id = create_a_session_for_game(2)
     return render_template("spin_the_wheel.html", session_id=session_id)
 
 

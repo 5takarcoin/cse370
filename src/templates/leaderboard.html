@@ -2,48 +2,171 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Leaderboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - Money Game</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            background-color: #f4f7f6;
+        }
+        .main-wrapper { flex: 1; }
+        .navbar { min-height: 4.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .footer { padding: 2rem 1.5rem; background-color: #ffffff !important; border-top: 1px solid #e1e1e1; }
+        .box { border-radius: 8px; }
+        .menu-list a { padding: 0.75rem 1rem; }
+        
+        /* Leaderboard Specifics */
+        .rank-1 { background-color: #fff9c4 !important; font-weight: bold; } /* Gold */
+        .rank-2 { background-color: #f5f5f5 !important; } /* Silver */
+        .rank-3 { background-color: #fff3e0 !important; } /* Bronze */
+        
+        .medal-icon { margin-right: 10px; }
+        .table thead th {
+            background-color: #48c78e;
+            color: white !important;
+            border: none;
+        }
+    </style>
 </head>
 <body>
-<section class="section">
-    <div class="container">
-        <h1 class="title has-text-centered mb-6">Leaderboard - {{ game_name }}</h1>
 
-        {% if top_players %}
-        <table class="table is-fullwidth is-striped is-hoverable">
-            <thead>
-                <tr>
-                    <th>Rank</th>
-                    <th>Player ID</th>
-                    <th>Score</th>
-                    {% if game_name == "All" %}
-                    <th>Game</th>
-                    {% endif %}
-                </tr>
-            </thead>
-           <tbody>
-                {% for player in top_players %}
-                <tr>
-                    <td>{{ loop.index }}</td>  <!-- rank -->
-                    <td>{{ player.player_id }}</td>
-                    <td>{{ player.max_score }}</td>
-                     {% if game_name == "All" %}
-                    <td>{{ player.game_name }}</td>
-                    {% endif %}
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p class="has-text-centered">No scores yet for this game.</p>
-        {% endif %}
+    <div class="main-wrapper">
+        <nav class="navbar is-success" role="navigation" aria-label="main navigation">
+            <div class="container">
+                <div class="navbar-brand">
+                    <a class="navbar-item" href="/">
+                        <strong class="is-size-3 has-text-white">💰 MoneyGame</strong>
+                    </a>
+                </div>
+                
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            <form method="POST" action="{{ url_for('login') }}">
+                                <button type="submit" name="logout" value="logout" class="button is-white is-outlined has-text-weight-bold">
+                                    <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                                    <span>Logout</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
 
-        <div class="has-text-centered mt-4">
-            <a class="button is-link" href="/games">Back to Games</a>
-        </div>
+        <section class="section">
+            <div class="container">
+                <div class="columns is-variable is-5">
+                    
+                    <div class="column is-3">
+                        <aside class="menu box">
+                            <p class="menu-label is-size-7">Main Dashboard</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('player_profile', username=session['username'])}}"><i class="fas fa-id-badge mr-2"></i> My Profile</a></li>
+                                <li><a href="{{url_for('friends')}}"><i class="fas fa-user-friends mr-2"></i> Friends</a></li>
+                            </ul>
+                            <p class="menu-label is-size-7">Economy</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('bank')}}"><i class="fas fa-vault mr-2"></i> Bank Vault</a></li>
+                                <li><a href="#"><i class="fas fa-chart-line mr-2"></i> Stock Exchange</a></li>
+                            </ul>
+                            <p class="menu-label is-size-7">Play</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('games.games_home')}}" class="is-active"><i class="fas fa-dice mr-2"></i> Mini Games</a></li>
+                            </ul>
+                            <hr>
+                            <a class="button is-light is-fullwidth" href="/games">
+                                <span class="icon"><i class="fas fa-arrow-left"></i></span>
+                                <span>Back to Games</span>
+                            </a>
+                        </aside>
+                    </div>
+
+                    <div class="column is-9">
+                        <div class="box p-6">
+                            <div class="columns is-vcentered mb-5">
+                                <div class="column">
+                                    <h1 class="title is-2 mb-2">Hall of Fame</h1>
+                                    <p class="subtitle is-5 has-text-grey">
+                                        Top scores for: <span class="has-text-success has-text-weight-bold">{{ game_name }}</span>
+                                    </p>
+                                </div>
+                                <div class="column is-narrow has-text-centered">
+                                    <span class="icon is-large has-text-warning">
+                                        <i class="fas fa-crown fa-3x"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            {% if top_players %}
+                            <div class="table-container">
+                                <table class="table is-fullwidth is-hoverable">
+                                    <thead>
+                                        <tr>
+                                            <th class="has-text-centered">Rank</th>
+                                            <th>Player Name</th>
+                                            <th class="has-text-centered">Score</th>
+                                            {% if game_name == "All" %}
+                                            <th>Game</th>
+                                            {% endif %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for player in top_players %}
+                                        <tr class="rank-{{ loop.index if loop.index <= 3 else 'other' }}">
+                                            <td class="has-text-centered has-text-weight-bold">
+                                                {% if loop.index == 1 %}
+                                                    <span class="icon has-text-warning"><i class="fas fa-medal"></i></span>
+                                                {% elif loop.index == 2 %}
+                                                    <span class="icon has-text-grey-light"><i class="fas fa-medal"></i></span>
+                                                {% elif loop.index == 3 %}
+                                                    <span class="icon has-text-brown" style="color: #cd7f32;"><i class="fas fa-medal"></i></span>
+                                                {% else %}
+                                                    {{ loop.index }}
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="is-flex is-align-items-center">
+                                                    <figure class="image is-24x24 mr-2">
+                                                        <img class="is-rounded" src="https://ui-avatars.com/api/?name={{player.player_id}}&background=random">
+                                                    </figure>
+                                                    {{ player.player_id }}
+                                                </div>
+                                            </td>
+                                            <td class="has-text-centered has-text-weight-bold has-text-success">
+                                                {{ "{:,}".format(player.max_score) }}
+                                            </td>
+                                            {% if game_name == "All" %}
+                                            <td><span class="tag is-light">{{ player.game_name }}</span></td>
+                                            {% endif %}
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="notification is-light has-text-centered py-6">
+                                <span class="icon is-large has-text-grey-lighter mb-3">
+                                    <i class="fas fa-ghost fa-3x"></i>
+                                </span>
+                                <p class="is-size-5 has-text-grey">No scores recorded yet. Be the first!</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div> </div>
+            </div>
+        </section>
     </div>
-</section>
+
+    <footer class="footer">
+        <div class="container has-text-centered">
+            <p><strong>Money Game</strong> &copy; 2026. Data refreshes every 60 seconds.</p>
+        </div>
+    </footer>
+
 </body>
 </html>

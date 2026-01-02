@@ -1,40 +1,10 @@
-body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    background: #111;
-    color: #fff;
-}
-
-.container {
-    text-align: center;
-    margin-top: 50px;
-}
+/* stw.css - Cleaned Version */
 
 canvas {
     background: #222;
     border-radius: 50%;
-    margin: 20px 0;
-}
-
-button {
-    padding: 12px 30px;
-    font-size: 18px;
-    cursor: pointer;
-    background: #ff9800;
-    border: none;
-    border-radius: 6px;
-    color: #000;
-}
-
-button:hover {
-    background: #ffa726;
-}
-
-#result {
-    margin-top: 20px;
-    font-size: 20px;
-    font-weight: bold;
+    /* margin: 20px 0; Removed to let Bulma handle spacing */
+    display: block;
 }
 
 .wheel-wrapper {
@@ -49,11 +19,14 @@ button:hover {
     transform: translateY(-50%);
     width: 0;
     height: 0;
-
     border-top: 12px solid transparent;
     border-bottom: 12px solid transparent;
     border-right: 20px solid red; /* points LEFT */
     z-index: 10;
 }
 
-
+/* We keep the spin button hover effect if you want it, 
+   but Bulma classes usually handle this now */
+#spinBtn:hover {
+    filter: brightness(1.1);
+}

@@ -2,49 +2,158 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Games Home</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Games - Money Game</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            background-color: #f4f7f6;
+        }
+        .main-wrapper { flex: 1; }
+        .navbar { min-height: 4.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .footer { padding: 2rem 1.5rem; background-color: #ffffff !important; border-top: 1px solid #e1e1e1; }
+        .box { border-radius: 8px; }
+        .menu-list a { padding: 0.75rem 1rem; }
+        
+        /* Game Card Styling */
         .game-card {
             cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
+            transition: all 0.2s ease-in-out;
+            border: 1px solid transparent;
         }
         .game-card:hover {
-            transform: translateY(-3px);
-            background-color: #f5f5f5;
+            transform: translateY(-5px);
+            background-color: #f9fdfb;
+            border-color: #48c78e;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
+        .leaderboard-banner {
+            background: linear-gradient(135deg, #48c78e 0%, #2ea043 100%);
+            color: white !important;
+            transition: opacity 0.2s;
+        }
+        .leaderboard-banner:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
-    <section class="section">
-        <div class="container">
-            <h1 class="title has-text-centered mb-5">Games</h1>
 
-
-            <div class="columns is-multiline is-centered">
-                {% for game in games %}
-                <div class="column is-12-mobile is-6-tablet is-4-desktop">
-                    <div class="box game-card"
-                        onclick="location.href='/games/{{ game.normalized_name }}'">
-                        <p class="has-text-centered is-size-5">
-                            {{ game.game_name }}
-                        </p>
+    <div class="main-wrapper">
+        <nav class="navbar is-success" role="navigation" aria-label="main navigation">
+            <div class="container">
+                <div class="navbar-brand">
+                    <a class="navbar-item" href="/">
+                        <strong class="is-size-3 has-text-white">💰 MoneyGame</strong>
+                    </a>
+                </div>
+                
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            <form method="POST" action="{{ url_for('login') }}">
+                                <button type="submit" name="logout" value="logout" class="button is-white is-outlined has-text-weight-bold">
+                                    <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                                    <span>Logout</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
-                {% endfor %}
             </div>
-     
-        </div>
-    </section>
+        </nav>
 
-    <section class="section">
-        <div class="container">
-            <div class="box game-card">See Leaderboard</div>
-        </div>
-    </section>
+        <section class="section">
+            <div class="container">
+                <div class="columns is-variable is-5">
+                    
+                    <div class="column is-3">
+                        <aside class="menu box">
+                            <p class="menu-label is-size-7">Main Dashboard</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('player_profile', username=session['username'])}}"><i class="fas fa-id-badge mr-2"></i> My Profile</a></li>
+                                <li><a href="{{url_for('friends')}}"><i class="fas fa-user-friends mr-2"></i> Friends</a></li>
+                            </ul>
+                            <p class="menu-label is-size-7">Economy</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('bank')}}"><i class="fas fa-vault mr-2"></i> Bank Vault</a></li>
+                                <li><a href="#"><i class="fas fa-chart-line mr-2"></i> Stock Exchange</a></li>
+                            </ul>
+                            <p class="menu-label is-size-7">Play</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('games.games_home')}}" class="is-active"><i class="fas fa-dice mr-2"></i> Mini Games</a></li>
+                            </ul>
+                            <hr>
+                            <a href="/" class="button is-light is-fullwidth">
+                                <span class="icon"><i class="fas fa-arrow-left"></i></span>
+                                <span>Go Back</span>
+                            </a>
+                        </aside>
+                    </div>
 
-    <a href="/">Go back</a>
+                    <div class="column is-9">
+                        <div class="box p-6">
+                            <div class="columns is-vcentered mb-5">
+                                <div class="column">
+                                    <h1 class="title is-2">Game Center</h1>
+                                    <p class="subtitle is-5 has-text-grey">Wager your cash and grow your net worth.</p>
+                                </div>
+                                <div class="column is-narrow">
+                                    <span class="icon is-large has-text-success">
+                                        <i class="fas fa-gamepad fa-3x"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="columns is-multiline">
+                                {% for game in games %}
+                                <div class="column is-12-mobile is-6-tablet is-4-desktop">
+                                    <div class="box game-card has-text-centered p-5"
+                                        onclick="location.href='/games/{{ game.normalized_name }}'">
+                                        <span class="icon is-large has-text-success mb-3">
+                                            <i class="fas fa-coins fa-2x"></i>
+                                        </span>
+                                        <p class="is-size-5 has-text-weight-bold">
+                                            {{ game.game_name }}
+                                        </p>
+                                        <p class="is-size-7 has-text-grey">Click to Play</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <hr>
+
+                            <div class="mt-5">
+                                <a class="box leaderboard-banner p-5 has-text-centered" href="/games/leaderboard">
+                                    <div class="columns is-vcentered">
+                                        <div class="column is-narrow">
+                                            <span class="icon is-large"><i class="fas fa-trophy fa-2x"></i></span>
+                                        </div>
+                                        <div class="column">
+                                            <p class="is-size-4 has-text-weight-bold">Global Leaderboard</p>
+                                            <p>See who is the richest player in the world</p>
+                                        </div>
+                                        <div class="column is-narrow">
+                                            <span class="button is-white is-outlined">View Rankings</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                        </div>
+                    </div> </div>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <div class="container has-text-centered">
+            <p><strong>Money Game</strong> &copy; 2026. Fair Play & RNG Certified.</p>
+        </div>
+    </footer>
 
 </body>
 </html>

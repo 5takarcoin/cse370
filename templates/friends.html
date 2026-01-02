@@ -2,62 +2,190 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Friends</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends - Money Game</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            background-color: #f4f7f6;
+        }
+        .main-wrapper { flex: 1; }
+        .navbar {
+            min-height: 4.5rem; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .footer {
+            padding: 2rem 1.5rem 2rem; 
+            background-color: #ffffff !important;
+            border-top: 1px solid #e1e1e1;
+        }
+        .box { border-radius: 8px; }
+        .menu-list a { padding: 0.75rem 1rem; }
+        
+        /* Specific Friends Page Styling */
+        .request-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        .request-item:last-child { border-bottom: none; }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<body>
 
-    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 class="text-2xl font-bold text-center mb-6">Send a friend request:</h2>
-
-        <form method="POST" action="/friends" class="space-y-4">
-            <div>
-                <label class="block text-gray-700 mb-1">Username</label>
-                <input
-                    type="text"
-                    name="username"
-                    required
-                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+    <div class="main-wrapper">
+        <nav class="navbar is-success" role="navigation" aria-label="main navigation">
+            <div class="container">
+                <div class="navbar-brand">
+                    <a class="navbar-item" href="/">
+                        <strong class="is-size-3 has-text-white">💰 MoneyGame</strong>
+                    </a>
+                </div>
+                
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            <form method="POST" action="{{ url_for('login') }}">
+                                <button type="submit" name="logout" value="logout" class="button is-white is-outlined has-text-weight-bold">
+                                    <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                                    <span>Logout</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </nav>
 
-            <button
-                type="submit"
-                class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-            >
-                Send
-            </button>
-        </form>
-        {% if match is not none%}
-            {% if match is true%}
-                {% if is_self is true%}
-                    <p>You cannot add yourself as a friend!</p>   
-                {% else %}
-                    <p>Friend request sent!</p>   
-                {% endif %}
-            {% else %}
-                <p>Player doesn't exist</p>  
-            {% endif %}
-        {% endif %}
+        <section class="section">
+            <div class="container">
+                <div class="columns is-variable is-5">
+                    
+                    <div class="column is-3">
+                        <aside class="menu box">
+                            <p class="menu-label is-size-7">Main Dashboard</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('player_profile', username=session['username'])}}"><i class="fas fa-id-badge mr-2"></i> My Profile</a></li>
+                                <li><a href="{{url_for('friends')}}" class="is-active"><i class="fas fa-user-friends mr-2"></i> Friends</a></li>
+                            </ul>
+                            <p class="menu-label is-size-7">Economy</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('bank')}}"><i class="fas fa-vault mr-2"></i> Bank Vault</a></li>
+                                <li><a href="#"><i class="fas fa-chart-line mr-2"></i> Stock Exchange</a></li>
+                            </ul>
+                            <p class="menu-label is-size-7">Play</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('games.games_home')}}"><i class="fas fa-dice mr-2"></i> Mini Games</a></li>
+                            </ul>
+                        </aside>
+                    </div>
 
+                    <div class="column is-9">
+                        <div class="columns">
+                            <div class="column is-5">
+                                <div class="box">
+                                    <h3 class="title is-4"><i class="fas fa-user-plus has-text-success mr-2"></i> Add Friend</h3>
+                                    <form method="POST" action="/friends">
+                                        <div class="field">
+                                            <label class="label">Username</label>
+                                            <div class="control has-icons-left">
+                                                <input class="input" type="text" name="username" placeholder="Enter username..." required>
+                                                <span class="icon is-small is-left">
+                                                    <i class="fas fa-search"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <button type="submit" class="button is-success is-fullwidth has-text-weight-bold">
+                                            SEND REQUEST
+                                        </button>
+                                    </form>
+
+                                    {% if match is not none %}
+                                    <div class="mt-4">
+                                        {% if match is true %}
+                                            {% if is_self is true %}
+                                                <div class="notification is-warning is-light p-3">You cannot add yourself!</div>
+                                            {% else %}
+                                                <div class="notification is-success is-light p-3">Request sent!</div>
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="notification is-danger is-light p-3">Player doesn't exist.</div>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="column is-7">
+                                <div class="box">
+                                    <h3 class="title is-4"><i class="fas fa-clock has-text-info mr-2"></i> Pending Requests</h3>
+                                    
+                                    {% if frq %}
+                                        <div class="content">
+                                            {% for f in frq %}
+                                            <div class="request-item">
+                                                <div class="is-flex is-align-items-center">
+                                                    <figure class="image is-32x32 mr-3">
+                                                        <img class="is-rounded" src="https://ui-avatars.com/api/?name={{f['name']}}&background=random">
+                                                    </figure>
+                                                    <div>
+                                                        <a href="{{url_for('player_profile', username=f['username'])}}" class="has-text-weight-bold">
+                                                            {{f['name']}}
+                                                        </a>
+                                                        <p class="is-size-7 has-text-grey">wants to be friends</p>
+                                                    </div>
+                                                </div>
+                                                <form method="post">
+                                                    <input type="hidden" name="friend_id" value="{{ f['player_id'] }}">
+                                                    <button type="submit" class="button is-info is-small is-light has-text-weight-bold">
+                                                        ACCEPT
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="has-text-centered py-5">
+                                            <span class="icon is-large has-text-grey-lighter">
+                                                <i class="fas fa-envelope-open fa-2x"></i>
+                                            </span>
+                                            <p class="has-text-grey mt-2">No pending requests.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div> </div>
+            </div>
+        </section>
     </div>
-        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-            <h2 class="text-2xl font-bold text-center mb-6">Friend Requests:</h2>
 
-            <ul>
-                {% for f in frq %}
-                <li>
-                    <a href="{{url_for('player_profile', username=f['username'])}}">{{f['name']}}</a>
-                    <form method="post">
-                        <input type="hidden" name="friend_id" value="{{ f['player_id'] }}">
-                        <button
-                        type="submit"
-                        class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-                        >Accept</button>
-                    </form>
-                </li>
-                {% endfor %}
-            </ul>
+    <footer class="footer">
+        <div class="container">
+            <div class="level">
+                <div class="level-left">
+                    <div class="level-item">
+                        <p class="is-size-6"><strong>Money Game</strong> &copy; 2026.</p>
+                    </div>
+                </div>
+                <div class="level-right">
+                    <div class="level-item">
+                        <div class="buttons">
+                            <a class="button is-small is-light">Discord</a>
+                            <a class="button is-small is-light">Support</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </footer>
+
 </body>
 </html>

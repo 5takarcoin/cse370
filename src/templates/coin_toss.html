@@ -1,44 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Coin Toss</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-<link rel="stylesheet" href="{{ url_for('games.static', filename='css/coin.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Toss - Money Game</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('games.static', filename='css/coin.css') }}">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            background-color: #f4f7f6;
+        }
+        .main-wrapper { flex: 1; }
+        .navbar { min-height: 4.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .footer { padding: 2rem 1.5rem; background-color: #ffffff !important; border-top: 1px solid #e1e1e1; }
+        .box { border-radius: 8px; }
+        .menu-list a { padding: 0.75rem 1rem; }
+        
+        /* Game Specific Area */
+        .game-display-box {
+            background-color: #ffffff;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .coin-container { margin: 2rem 0; }
+    </style>
 </head>
 <body>
-<section class="section">
-    <div class="container has-text-centered">
-        <h3>Session no: {{ session_id }}</h3>
-        <h4 id="score">Score: 0</h4>
-        <h1 class="title mb-6">Coin Toss Game</h1>
 
-        <div class="buttons is-centered mb-4">
-            <button class="button is-primary" id="pick-heads">Heads</button>
-            <button class="button is-danger" id="pick-tails">Tails</button>
-        </div>
-
-        <div class="coin-container">
-            <div class="coin" id="coin">
-                <!-- Heads SVG Image -->
-                <svg class="heads" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="48" fill="gold" stroke="orange" stroke-width="4"/>
-                    <image href="{{ url_for('games.static', filename='images/heads.svg') }}" x="15" y="15" width="70" height="70"/>
-                </svg>
-                <!-- Tails SVG Image -->
-                <svg class="tails" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="48" fill="orange" stroke="gold" stroke-width="4"/>
-                    <image href="{{ url_for('games.static', filename='images/tails.svg') }}" x="15" y="15" width="70" height="70"/>
-                </svg>
+    <div class="main-wrapper">
+        <nav class="navbar is-success" role="navigation" aria-label="main navigation">
+            <div class="container">
+                <div class="navbar-brand">
+                    <a class="navbar-item" href="/">
+                        <strong class="is-size-3 has-text-white">💰 MoneyGame</strong>
+                    </a>
+                </div>
+                
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            <form method="POST" action="{{ url_for('login') }}">
+                                <button type="submit" name="logout" value="logout" class="button is-white is-outlined has-text-weight-bold">
+                                    <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                                    <span>Logout</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-        <p class="mt-4" id="result" style="font-size:1.5rem; font-weight:bold;"></p>
+        </nav>
+
+        <section class="section">
+            <div class="container">
+                <div class="columns is-variable is-5">
+                    
+                    <div class="column is-3">
+                        <aside class="menu box">
+                            <p class="menu-label is-size-7">Main Dashboard</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('player_profile', username=session['username'])}}"><i class="fas fa-id-badge mr-2"></i> My Profile</a></li>
+                                <li><a href="{{url_for('friends')}}"><i class="fas fa-user-friends mr-2"></i> Friends</a></li>
+                            </ul>
+                            <p class="menu-label is-size-7">Economy</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('bank')}}"><i class="fas fa-vault mr-2"></i> Bank Vault</a></li>
+                                <li><a href="#"><i class="fas fa-chart-line mr-2"></i> Stock Exchange</a></li>
+                            </ul>
+                            <p class="menu-label is-size-7">Play</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('games.games_home')}}" class="is-active"><i class="fas fa-dice mr-2"></i> Mini Games</a></li>
+                            </ul>
+                            <hr>
+                            <a href="/games" class="button is-light is-fullwidth">
+                                <span class="icon"><i class="fas fa-arrow-left"></i></span>
+                                <span>Back to Games</span>
+                            </a>
+                        </aside>
+                    </div>
+
+                    <div class="column is-9">
+                        <div class="box game-display-box has-text-centered p-6">
+                            <div class="mb-4">
+                                <span class="tag is-dark is-medium">Session: {{ session_id }}</span>
+                                <span class="tag is-success is-medium ml-2" id="score">Score: 0</span>
+                            </div>
+
+                            <h1 class="title is-2 mb-6">Coin Toss</h1>
+
+                            <div class="coin-container">
+                                <div class="coin" id="coin">
+                                    <svg class="heads" viewBox="0 0 100 100">
+                                        <circle cx="50" cy="50" r="48" fill="gold" stroke="orange" stroke-width="4"/>
+                                        <image href="{{ url_for('games.static', filename='images/heads.svg') }}" x="15" y="15" width="70" height="70"/>
+                                    </svg>
+                                    <svg class="tails" viewBox="0 0 100 100">
+                                        <circle cx="50" cy="50" r="48" fill="orange" stroke="gold" stroke-width="4"/>
+                                        <image href="{{ url_for('games.static', filename='images/tails.svg') }}" x="15" y="15" width="70" height="70"/>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <p id="result" class="mb-5" style="font-size:1.8rem; font-weight:bold; height: 2.5rem;"></p>
+
+                            <div class="buttons is-centered">
+                                <button class="button is-primary is-large px-6" id="pick-heads">
+                                    <span class="icon"><i class="fas fa-circle-up"></i></span>
+                                    <span>Heads</span>
+                                </button>
+                                <button class="button is-danger is-large px-6" id="pick-tails">
+                                    <span class="icon"><i class="fas fa-circle-down"></i></span>
+                                    <span>Tails</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <a class="button is-info is-light is-fullwidth" href="/games/coin_toss/leaderboard">
+                                <span class="icon"><i class="fas fa-trophy"></i></span>
+                                <span>View Coin Toss Leaderboard</span>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
     </div>
-</section>
 
-<a href="/games">Go back</a>
+    <footer class="footer">
+        <div class="container has-text-centered">
+            <p><strong>Money Game</strong> &copy; 2026. Fair Odds Guaranteed.</p>
+        </div>
+    </footer>
 
-<script src="{{ url_for('games.static', filename='js/coin.js') }}"></script>
+    <script src="{{ url_for('games.static', filename='js/coin.js') }}"></script>
 </body>
 </html>

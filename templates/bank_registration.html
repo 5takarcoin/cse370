@@ -3,39 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register a bank account</title>
+    <title>Register Account - Money Game</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            background-color: #f4f7f6;
+        }
+        .main-wrapper { flex: 1; }
+        .navbar { min-height: 4.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .footer { padding: 2rem 1.5rem; background-color: #ffffff !important; border-top: 1px solid #e1e1e1; }
+        .box { border-radius: 8px; }
+        .menu-list a { padding: 0.75rem 1rem; }
+        
+        /* Form specific tweaks */
+        .registration-card { border-top: 4px solid #48c78e; }
+    </style>
 </head>
 <body>
-    <form method="post">
-        <div>
-            <label for="account_type">Account Type</label>
-            <select name="account_type" required>
-                <option value="">Select one</option>
-                {% for t in account_types %}
-                <option value="{{t['account_type']}}">{{t['account_type']}}</option>
-                {% endfor %}
-            </select>
-        </div>
 
-        <div>
-            <label for="initial_deposit">Initial Deposit</label>
-            <input type="number" min="{{5}}" step="1" name="initial_deposit" required>
-        </div>
+    <div class="main-wrapper">
+        <nav class="navbar is-success" role="navigation" aria-label="main navigation">
+            <div class="container">
+                <div class="navbar-brand">
+                    <a class="navbar-item" href="/">
+                        <strong class="is-size-3 has-text-white">💰 MoneyGame</strong>
+                    </a>
+                </div>
+                
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            <form method="POST" action="{{ url_for('login') }}">
+                                <button type="submit" name="logout" value="logout" class="button is-white is-outlined has-text-weight-bold">
+                                    <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                                    <span>Logout</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
 
-        <div>
-            <input type="checkbox" name="confirm" required>
-            <label for="confirm">I agree to sell my soul</label>
-        </div>
+        <section class="section">
+            <div class="container">
+                <div class="columns is-variable is-5">
+                    
+                    <div class="column is-3">
+                        <aside class="menu box">
+                            <p class="menu-label is-size-7">Main Dashboard</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('player_profile', username=session['username'])}}"><i class="fas fa-id-badge mr-2"></i> My Profile</a></li>
+                                <li><a href="{{url_for('friends')}}"><i class="fas fa-user-friends mr-2"></i> Friends</a></li>
+                            </ul>
+                            <p class="menu-label is-size-7">Economy</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('bank')}}" class="is-active"><i class="fas fa-vault mr-2"></i> Bank Vault</a></li>
+                                <li><a href="#"><i class="fas fa-chart-line mr-2"></i> Stock Exchange</a></li>
+                            </ul>
+                        </aside>
+                    </div>
 
-        <div>
-            <input type="submit" value="submit">
-        </div>
+                    <div class="column is-9">
+                        <div class="columns">
+                            
+                            <div class="column is-7">
+                                <div class="box registration-card p-6">
+                                    <h1 class="title is-3 mb-5">Open New Account</h1>
+                                    
+                                    {% for m in get_flashed_messages() %}
+                                        <div class="notification is-danger is-light mb-4">
+                                            <button class="delete"></button>
+                                            {{m}}
+                                        </div>
+                                    {% endfor %}
 
-    </form>
-        <ul>
-        {% for m in get_flashed_messages() %}
-            <li>{{m}}</li>
-        {% endfor %}
-    </ul>
+                                    <form method="post">
+                                        <div class="field mb-5">
+                                            <label class="label">Account Type</label>
+                                            <div class="control has-icons-left">
+                                                <div class="select is-fullwidth">
+                                                    <select name="account_type" required>
+                                                        <option value="">Select one</option>
+                                                        {% for t in account_types %}
+                                                        <option value="{{t['account_type']}}">{{t['account_type']}}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="icon is-small is-left">
+                                                    <i class="fas fa-briefcase"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="field mb-5">
+                                            <label class="label">Initial Deposit ($)</label>
+                                            <div class="control has-icons-left">
+                                                <input class="input" type="number" min="5" step="1" name="initial_deposit" placeholder="Min $5.00" required>
+                                                <span class="icon is-small is-left">
+                                                    <i class="fas fa-money-bill-wave"></i>
+                                                </span>
+                                            </div>
+                                            <p class="help">A minimum deposit of $5 is required to activate your account.</p>
+                                        </div>
+
+                                        <div class="field mb-6">
+                                            <div class="control">
+                                                <label class="checkbox">
+                                                    <input type="checkbox" name="confirm" required>
+                                                    I agree to the <span class="has-text-success has-text-weight-bold">Terms of Service</span> and soul-binding contract.
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="control">
+                                            <button type="submit" class="button is-success is-fullwidth is-large has-text-weight-bold">
+                                                CREATE ACCOUNT
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="column is-5">
+                                <div class="notification is-info is-light box border-0">
+                                    <h3 class="title is-4">Why open a bank account?</h3>
+                                    <div class="content">
+                                        <ul>
+                                            <li><strong>Secure Storage:</strong> Protect your cash from game-world events.</li>
+                                            <li><strong>Interest Rates:</strong> Earn passive income on your balance.</li>
+                                            <li><strong>Fast Transfers:</strong> Instantly send money to friends.</li>
+                                            <li><strong>History:</strong> Track every penny with transaction logs.</li>
+                                        </ul>
+                                    </div>
+                                    <div class="has-text-centered mt-5">
+                                        <span class="icon is-large has-text-info">
+                                            <i class="fas fa-shield-alt fa-3x"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div> </div>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <div class="container has-text-centered">
+            <p><strong>Money Game</strong> &copy; 2026. SEC Secure Banking System.</p>
+        </div>
+    </footer>
+
 </body>
 </html>

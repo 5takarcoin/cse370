@@ -1,30 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Rock Paper Scissors</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-<link rel="stylesheet" href="{{ url_for('games.static', filename='css/rps.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Paper Scissors - Money Game</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('games.static', filename='css/rps.css') }}">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            background-color: #f4f7f6;
+        }
+        .main-wrapper { flex: 1; }
+        .navbar { min-height: 4.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .footer { padding: 2rem 1.5rem; background-color: #ffffff !important; border-top: 1px solid #e1e1e1; }
+        .box { border-radius: 8px; }
+        .menu-list a { padding: 0.75rem 1rem; }
+        
+        /* Game Specific Styling */
+        .game-area {
+            background-color: #ffffff;
+            min-height: 450px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .rps-btn {
+            min-width: 140px;
+            height: 100px !important;
+            font-size: 1.5rem !important;
+            transition: transform 0.2s;
+        }
+        .rps-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
 </head>
 <body>
-<section class="section">
-    <div class="container has-text-centered">
-        <h1 class="title mb-6">Rock Paper Scissors</h1>
-        
-        <div class="buttons is-centered mb-5">
-            <button class="button is-large rps-btn" data-choice="rock">✊ Rock</button>
-            <button class="button is-large rps-btn" data-choice="paper">✋ Paper</button>
-            <button class="button is-large rps-btn" data-choice="scissors">✌️ Scissors</button>
-        </div>
 
-        <div id="result" class="is-size-4 has-text-weight-bold"></div>
-        <div id="score" class="mt-3 is-size-5"></div>
+    <div class="main-wrapper">
+        <nav class="navbar is-success" role="navigation" aria-label="main navigation">
+            <div class="container">
+                <div class="navbar-brand">
+                    <a class="navbar-item" href="/">
+                        <strong class="is-size-3 has-text-white">💰 MoneyGame</strong>
+                    </a>
+                </div>
+                
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            <form method="POST" action="{{ url_for('login') }}">
+                                <button type="submit" name="logout" value="logout" class="button is-white is-outlined has-text-weight-bold">
+                                    <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                                    <span>Logout</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <section class="section">
+            <div class="container">
+                <div class="columns is-variable is-5">
+                    
+                    <div class="column is-3">
+                        <aside class="menu box">
+                            <p class="menu-label is-size-7">Main Dashboard</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('player_profile', username=session['username'])}}"><i class="fas fa-id-badge mr-2"></i> My Profile</a></li>
+                                <li><a href="{{url_for('friends')}}"><i class="fas fa-user-friends mr-2"></i> Friends</a></li>
+                            </ul>
+                            <p class="menu-label is-size-7">Economy</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('bank')}}"><i class="fas fa-vault mr-2"></i> Bank Vault</a></li>
+                                <li><a href="#"><i class="fas fa-chart-line mr-2"></i> Stock Exchange</a></li>
+                            </ul>
+                            <p class="menu-label is-size-7">Play</p>
+                            <ul class="menu-list">
+                                <li><a href="{{url_for('games.games_home')}}" class="is-active"><i class="fas fa-dice mr-2"></i> Mini Games</a></li>
+                            </ul>
+                            <hr>
+                            <a href="/games" class="button is-light is-fullwidth">
+                                <span class="icon"><i class="fas fa-arrow-left"></i></span>
+                                <span>Back to Games</span>
+                            </a>
+                        </aside>
+                    </div>
+
+                    <div class="column is-9">
+                        <div class="box game-area has-text-centered p-6">
+                            <h1 class="title is-2 mb-2">Rock Paper Scissors</h1>
+                            <p class="subtitle is-6 has-text-grey mb-6">Choose your move to win the pot!</p>
+
+                            <div class="buttons is-centered mb-6">
+                                <button class="button is-large rps-btn is-warning is-light" data-choice="rock">
+                                    <span class="is-size-1">✊</span><br>Rock
+                                </button>
+                                <button class="button is-large rps-btn is-info is-light" data-choice="paper">
+                                    <span class="is-size-1">✋</span><br>Paper
+                                </button>
+                                <button class="button is-large rps-btn is-danger is-light" data-choice="scissors">
+                                    <span class="is-size-1">✌️</span><br>Scissors
+                                </button>
+                            </div>
+
+                            <div id="result" class="is-size-3 has-text-weight-bold has-text-success" style="height: 3rem;"></div>
+                            <div id="score" class="mt-4 tag is-dark is-large">Score: 0</div>
+                        </div>
+
+                        <div class="mt-4">
+                            <a class="button is-info is-light is-fullwidth" href="/games/rock_paper_scissors/leaderboard">
+                                <span class="icon"><i class="fas fa-trophy"></i></span>
+                                <span>View Rock Paper Scissors Leaderboard</span>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
     </div>
-</section>
 
-<a href="/games">Go back</a>
+    <footer class="footer">
+        <div class="container has-text-centered">
+            <p><strong>Money Game</strong> &copy; 2026. Play responsibly.</p>
+        </div>
+    </footer>
 
-<script src="{{ url_for('games.static', filename='js/rps.js') }}"></script>
+    <script src="{{ url_for('games.static', filename='js/rps.js') }}"></script>
 </body>
 </html>
