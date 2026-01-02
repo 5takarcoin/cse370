@@ -2,7 +2,6 @@ from flask import Flask
 from flask import request, redirect, url_for, abort
 from flask import session, flash, get_flashed_messages
 from flask import render_template
-from markupsafe import escape
 from datetime import date, datetime
 import math
 
@@ -15,33 +14,43 @@ app.register_blueprint(games, url_prefix="/games")
 
 app.secret_key = '123'
 
-@app.route("/", methods=['POST', 'GET'])
+@app.route("/", methods=['GET', 'POST'])
 def home():
     if request.method == 'GET':
         if 'id' in session:
             first_name = session['fname']
             last_name = session['lname']
             username = session['username']
-            return render_template('home.html', username=username, fname=first_name, lname=last_name)
+            return render_template(
+                'home.html',
+                username=username,
+                fname=first_name,
+                lname=last_name
+            )
         else:
             return redirect(url_for('login'))
     else:
         if "logout" in request.form:
-            session.pop('id', None)
             return redirect(url_for('login'))
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = escape(request.form.get('username'))
-        password = escape(request.form.get('password'))
+        username = request.form.get('username')
+        password = request.form.get('password')
 
         conn = get_db_connection()
-        cursor = conn.cursor()        
 
-        query = f'SELECT player_id, username, first_name, last_name, password FROM players WHERE username="{username}";'
-        cursor.execute(query)
-        player = cursor.fetchone()
+        player_query = '''
+            SELECT player_id, username, first_name, last_name, password
+            FROM players WHERE username=%s;
+        '''
+
+        with conn.cursor() as cursor:       
+            cursor.execute(player_query, (username,))
+            player = cursor.fetchone()
+
+        conn.close()
 
         if player and player['password'] == password:
             session['id'] = player['player_id']
@@ -52,11 +61,13 @@ def login():
         else:
             flash("Username or password is incorrect!")
             return render_template('login.html')
-        cursor.close()
-        conn.close()
+
     else:
         session.pop('id', None)
-        return render_template("login.html")
+        session.pop('username', None)
+        session.pop('fname', None)
+        session.pop('lname', None)
+        return render_template('login.html')
 
 @app.route("/signup", methods=['GET', 'POST'])
 def signup():
@@ -81,12 +92,18 @@ def signup():
         '''
 
         insertion_query = '''
-        INSERT INTO players (first_name, last_name, username, email, date_of_birth, password)
-        VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO players (
+                first_name,
+                last_name,
+                username,
+                email,
+                date_of_birth,
+                password
+            )
+            VALUES (%s, %s, %s, %s, %s, %s)
         '''
 
         conn = get_db_connection()
-        
         with conn.cursor() as cursor:
             cursor.execute(validation_query, (uname, email))
             row = cursor.fetchone()
@@ -104,12 +121,11 @@ def signup():
                     insertion_query,
                     (fname, lname, uname, email, dob, password)
                 )
+                conn.commit()
+                conn.close()
                 flash("Sign up successful! Please log in.")
-
-        conn.commit()
+                return redirect(url_for('login'))
         conn.close()
-
-        if valid: return redirect(url_for('login'))
     today = date.today().isoformat()
     return render_template('signup.html', today=today)
 
@@ -131,8 +147,8 @@ def friends():
             DELETE FROM friend_requests 
             WHERE sender_id = %s AND receiver_id = %s;
         '''
-        sender = player_id
-        receiver = request.form["friend_id"]
+        sender = request.form["friend_id"]
+        receiver = player_id
         with conn.cursor() as cursor:
             cursor.execute(insertion_query, (sender, receiver))
             cursor.execute(deletion_query, (sender, receiver))
@@ -141,9 +157,9 @@ def friends():
     elif sending_frq:
         target_username = request.form['username']
         locating_query = '''
-                SELECT player_id FROM players
-                WHERE username = %s;
-            '''
+            SELECT player_id FROM players
+            WHERE username = %s;
+        '''
         with conn.cursor() as cursor:
             cursor.execute(locating_query, (target_username,))
             match = cursor.fetchone()
@@ -167,7 +183,7 @@ def friends():
                     cursor.execute(
                         existing_frq_query,
                         (target, player, player, target)
-                        )
+                    )
                     row = cursor.fetchone()
                     existing_frq = bool(row)
                 if existing_frq:
@@ -312,19 +328,18 @@ def player_profile(username):
 @app.route('/bank/')
 def bank():
     player_id = session['id']
-
     conn = get_db_connection()
-    cursor = conn.cursor()
 
-    ownership_query = f'''
-    SELECT b.account_no, b.account_balance, b.account_type
-    FROM bank_accounts b
-    INNER JOIN ownership w ON b.account_no = w.account_no
-    INNER JOIN players p ON p.player_id = w.player_id
-    WHERE p.player_id = {player_id}
+    ownership_query = '''
+        SELECT b.account_no, b.account_balance, b.account_type
+        FROM bank_accounts b
+        INNER JOIN ownership w ON b.account_no = w.account_no
+        INNER JOIN players p ON p.player_id = w.player_id
+        WHERE p.player_id = %s
     ''' 
-    cursor.execute(ownership_query)
-    account = cursor.fetchone()
+    with conn.cursor() as cursor:
+        cursor.execute(ownership_query, (player_id,))
+        account = cursor.fetchone()
 
     if not account:
         return redirect(url_for('create_bank_account'))
@@ -364,7 +379,7 @@ def create_bank_account():
         account_types = cursor.fetchall()
 
     if request.method == "POST":
-        deposit = int(request.form.get('initial_deposit'))
+        deposit = float(request.form.get('initial_deposit'))
         account_type = request.form.get('account_type')
 
 
@@ -373,20 +388,27 @@ def create_bank_account():
             cursor.execute(validation_query, (player_id,))
             row = cursor.fetchone()
             balance = row['personal_balance']
-            valid = balance > deposit
+            valid = balance >= deposit
     
         if not valid:
+            conn.close()
             flash("You do not have that much money!")
             return redirect(url_for('create_bank_account'))
         with conn.cursor() as cursor:
             account_no = f'MONEYGAME-{account_type.upper()}-{player_id:05}'
-            cursor.execute(ba_insertion_query, (account_no, account_type, deposit))
+            cursor.execute(
+                ba_insertion_query,
+                (account_no, account_type, deposit)
+            )
             cursor.execute(ownership_insertion_query, (player_id, account_no))
             cursor.execute(update_query, (deposit, player_id))
             conn.commit()
             return redirect(url_for('bank'))
     conn.close()
-    return render_template('bank_registration.html', account_types=account_types)
+    return render_template(
+        'bank_registration.html',
+        account_types=account_types
+    )
 
 @app.route('/bank/deposit', methods=["GET", "POST"])
 def deposit():
@@ -394,7 +416,10 @@ def deposit():
     player_id = session['id']
     if request.method == "POST":
         amount = float(request.form['amount'])
-        balance_query = 'SELECT personal_balance FROM players WHERE player_id = %s'
+        balance_query = '''
+            SELECT personal_balance
+            FROM players WHERE player_id = %s
+        '''
         update_query = '''
             UPDATE bank_accounts b
             INNER JOIN ownership o ON o.account_no = b.account_no
@@ -581,7 +606,6 @@ def transactions():
             transaction_amount,
             memo
         FROM transactions
-        INNER JOIN bank_accounts
         WHERE sender_account = %s
 
         UNION

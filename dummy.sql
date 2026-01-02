@@ -34,7 +34,7 @@ VALUES
 INSERT INTO bank_accounts (account_no, account_type, account_balance)
 VALUES
 ('MONEYGAME-LIME-00001', 'Lime', 1000.00),
-('MONEYGAME-BLUE-00002', 'BLUE', 800.00),
+('MONEYGAME-BLUE-00002', 'Blue', 800.00),
 ('MONEYGAME-PINK-00003', 'Pink', 1200.00);
 INSERT INTO ownership (player_id, account_no)
 VALUES
