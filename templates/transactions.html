@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction history</title>
+</head>
+<body>
+    <h2>Showing latest 20 transactions</h1>
+    <table>
+        <thead>
+            <th>Date</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Amount</th>
+            <th>Memo</th>
+        </thead>
+        <tbody>
+            {% for t in transactions %}
+            <tr>
+                <td> {{ t['transaction_date'] }}</td>
+                <td> {{ t['sender_account'] }}</td>
+                <td> {{ t['receiver_account'] }}</td>
+                <td> {{ t['transaction_amount'] }}</td>
+                <td> {{ t['memo'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

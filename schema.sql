@@ -69,9 +69,9 @@ CREATE TABLE transactions (
     transaction_id INT PRIMARY KEY AUTO_INCREMENT,
     sender_account VARCHAR(100) NOT NULL,
     receiver_account VARCHAR(100) NOT NULL,
+    transaction_amount DECIMAL(10,2) NOT NULL,
     memo VARCHAR(255),
     transaction_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    transaction_amount DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (sender_account) REFERENCES bank_accounts(account_no),
     FOREIGN KEY (receiver_account) REFERENCES bank_accounts(account_no)
 );

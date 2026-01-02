@@ -329,7 +329,7 @@ def deposit():
         update_query = '''
             UPDATE bank_accounts b
             INNER JOIN ownership o ON o.account_no = b.account_no
-            INNER JOIN players p on p.player_id = o.player_id
+            INNER JOIN players p ON p.player_id = o.player_id
             SET
                 b.account_balance = b.account_balance + %s,
                 p.personal_balance = p.personal_balance - %s
@@ -339,9 +339,11 @@ def deposit():
             cursor.execute(balance_query, (player_id,))
             row = cursor.fetchone()
             balance = row['personal_balance']
-        if amount < balance:
+        if amount <= balance:
             with conn.cursor() as cursor:
                 cursor.execute(update_query, (amount, amount, player_id))
+                conn.commit()
+                flash('Deposit successful!')
         else:
             flash("You don't have that much money!")
     profile_query = '''
@@ -358,7 +360,6 @@ def deposit():
         personal_balance = row['personal_balance']
         account_balance = row['account_balance']
 
-    conn.commit()
     conn.close()
     return render_template(
         'deposit.html',
@@ -369,15 +370,176 @@ def deposit():
 
 @app.route('/bank/withdraw', methods=["GET", "POST"])
 def withdraw():
-    return "Not implemented yet"
+    conn = get_db_connection()
+    player_id = session['id']
+    if request.method == "POST":
+        amount = float(request.form['amount'])
+        balance_query = '''
+            SELECT b.account_balance
+            FROM bank_accounts b
+            INNER JOIN ownership o ON b.account_no = o.account_no
+            WHERE o.player_id = %s
+        '''
+        update_query = '''
+            UPDATE players p
+            INNER JOIN ownership o ON p.player_id = o.player_id
+            INNER JOIN bank_accounts b ON b.account_no = o.account_no
+            SET
+                b.account_balance = b.account_balance - %s,
+                p.personal_balance = p.personal_balance + %s
+            WHERE p.player_id = %s;
+        ''' 
+        with conn.cursor() as cursor:
+            cursor.execute(balance_query, (player_id,))
+            row = cursor.fetchone()
+            balance = row['account_balance']
+
+        if amount <= balance:
+            with conn.cursor() as cursor:
+                cursor.execute(update_query, (amount, amount, player_id))
+                conn.commit()
+                flash('Withdrew successfully!')
+        else:
+            flash("You don't have that much money!")
+
+    profile_query = '''
+        SELECT b.account_no, p.personal_balance, b.account_balance
+        FROM bank_accounts b
+        INNER JOIN ownership w ON b.account_no = w.account_no
+        INNER JOIN players p ON p.player_id = w.player_id
+        WHERE p.player_id = %s
+    '''
+    with conn.cursor() as cursor:
+        cursor.execute(profile_query, (player_id,))
+        row = cursor.fetchone()
+        account_no = row['account_no']
+        personal_balance = row['personal_balance']
+        account_balance = row['account_balance']
+
+    conn.close()
+    return render_template(
+        'withdraw.html',
+        account_no = account_no,
+        personal_balance = personal_balance,
+        bank_balance = account_balance
+        )
 
 @app.route('/bank/transfer', methods=["GET", "POST"])
 def transfer():
-    return "Not implemented yet"
+    conn = get_db_connection()
+    player_id = session['id']
 
-@app.route('/bank/transactions', methods=["GET", "POST"])
+    profile_query = '''
+        SELECT b.account_no, b.account_balance
+        FROM bank_accounts b
+        INNER JOIN ownership w ON b.account_no = w.account_no
+        INNER JOIN players p ON p.player_id = w.player_id
+        WHERE p.player_id = %s
+    '''
+    with conn.cursor() as cursor:
+        cursor.execute(profile_query, (player_id,))
+        row = cursor.fetchone()
+
+    account_no = row['account_no']
+    account_balance = row['account_balance']
+
+    if request.method == "POST":
+        amount = float(request.form['amount'])
+        receiver_account = request.form['receiver']
+        memo = request.form['memo']
+        sender_account = account_no
+    
+        subtraction_query = '''
+            UPDATE bank_accounts
+            SET account_balance = account_balance - %s
+            WHERE account_no = %s;
+        ''' 
+        addition_query = '''
+            UPDATE bank_accounts
+            SET account_balance = account_balance + %s
+            WHERE account_no = %s;
+        ''' 
+        logging_query = '''
+            INSERT INTO transactions (
+                sender_account,
+                receiver_account,
+                transaction_amount,
+                memo
+            )
+            VALUES (%s, %s, %s, %s)
+        '''
+
+        if amount <= account_balance:
+            with conn.cursor() as cursor:
+                cursor.execute(subtraction_query, (amount, sender_account))
+                cursor.execute(addition_query, (amount, receiver_account))
+                cursor.execute(
+                    logging_query,
+                    (sender_account, receiver_account, amount, memo)
+                )
+
+                conn.commit()
+                conn.close()
+                flash('Money sent successfully!')
+                return redirect(url_for('transfer'))
+        else:
+            flash("You don't have that much money!")
+
+    conn.close()
+    return render_template(
+        'transfer.html',
+        account_no = account_no,
+        bank_balance = account_balance
+        )
+
+@app.route('/bank/transactions')
 def transactions():
-    return "Not implemented yet"
+    conn = get_db_connection()
+    player_id = session['id']
+    profile_query = '''
+        SELECT b.account_no
+        FROM bank_accounts b
+        INNER JOIN ownership w ON b.account_no = w.account_no
+        INNER JOIN players p ON p.player_id = w.player_id
+        WHERE p.player_id = %s
+    '''
+
+    history_query = '''
+        SELECT
+            transaction_date,
+            "You" AS sender_account,
+            receiver_account,
+            transaction_amount,
+            memo
+        FROM transactions
+        INNER JOIN bank_accounts
+        WHERE sender_account = %s
+
+        UNION
+
+        SELECT
+            transaction_date,
+            sender_account,
+            "You" AS receiver_account,
+            transaction_amount,
+            memo
+        FROM transactions
+        WHERE receiver_account = %s
+
+        ORDER BY transaction_date DESC
+        LIMIT 20;
+    '''
+    with conn.cursor() as cursor:
+        cursor.execute(profile_query, (player_id,))
+        row = cursor.fetchone()
+        account_no = row['account_no']
+    
+    with conn.cursor() as cursor:
+        cursor.execute(history_query, (account_no, account_no))
+        rows = cursor.fetchall()
+    
+    conn.close()
+    return render_template('transactions.html', transactions=rows)
 
 if __name__ == "__main__":
     app.run(debug=True)
