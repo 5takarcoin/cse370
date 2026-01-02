@@ -3,7 +3,8 @@ from flask import request, redirect, url_for, abort
 from flask import session, flash, get_flashed_messages
 from flask import render_template
 from markupsafe import escape
-from datetime import date
+from datetime import date, datetime
+import math
 
 from src.games import games
 
@@ -609,5 +610,46 @@ def transactions():
     conn.close()
     return render_template('transactions.html', transactions=rows)
 
+stock_funcs = {
+    'SIN' : math.sin,
+    'COS' : math.cos,
+    'TAN' : math.tan,
+}
+
+def get_stock_rate(func):
+    minute = datetime.now().minute
+    degree = minute*6
+    rad = (degree/180)*math.pi
+    f = stock_funcs[func]
+    price = min(max(1, abs(f(rad))*1000), 10000000)
+    return price
+
+@app.route('/stocks/')
+def stocks():
+    conn = get_db_connection()
+    market_query = '''
+        SELECT abbreviation FROM stocks
+    '''
+    with conn.cursor() as cursor:
+        cursor.execute(market_query)
+        stocks = cursor.fetchall()
+        for s in stocks:
+            rate = get_stock_rate(s['abbreviation'])
+            s['rate'] = rate
+    investments_query = '''
+        SELECT
+            s.stock_id
+            s.abbreviation,
+            s.exchange,
+            i.investment_amount
+            i.investment_date
+            FROM investments i
+            INNER JOIN players p ON p.player_id = i.player_id
+            INNER JOIN stocks s ON s.stock_id = i.stock_id
+            WHERE p.player_id = %s
+
+    '''
+    return stocks
+    
 if __name__ == "__main__":
     app.run(debug=True)

@@ -15,7 +15,7 @@ INSERT INTO games (game_name)
 VALUES
 ('Coin Toss');
 ('Spin The Wheel'),
-('Rock-Paper-Scissors');
+('Rock Paper Scissors');
 INSERT INTO game_genres (game_id, game_genre)
 VALUES
 (1, 'Folk'),
@@ -32,24 +32,24 @@ VALUES
 (3, 3, 1, '2025-01-04 18:00:00', NULL, 3);
 INSERT INTO bank_accounts (account_no, account_type, account_balance)
 VALUES
-('ACC1001', 'SAVING', 1000.00),
-('ACC1002', 'HARAM', 800.00),
-('ACC1003', 'SAVING', 1200.00);
+('MONEYGAME-LIME-00001', 'Lime', 1000.00),
+('MONEYGAME-BLUE-00002', 'BLUE', 800.00),
+('MONEYGAME-PINK-00003', 'Pink', 1200.00);
 INSERT INTO ownership (player_id, account_no)
 VALUES
-(1, 'ACC1001'),
-(2, 'ACC1002'),
-(3, 'ACC1003');
+(1, 'MONEYGAME-LIME-00001'),
+(2, 'MONEYGAME-BLUE-00002'),
+(3, 'MONEYGAME-PINK-00003');
 INSERT INTO transactions 
 (sender_account, receiver_account, memo, transaction_amount)
 VALUES
-('ACC1001', 'ACC1002', 'Game payment', 150.00),
-('ACC1002', 'ACC1003', 'Friend transfer', 200.00);
+('MONEYGAME-LIME-00001', 'MONEYGAME-BLUE-00002', 'Gift', 150.00),
+('MONEYGAME-BLUE-00002', 'MONEYGAME-PINK-00003', 'Bribe', 200.00);
 INSERT INTO stocks (abbreviation, exchange)
 VALUES
-('AAPL', 'NASDAQ'),
-('GOOG', 'NASDAQ'),
-('TSLA', 'NYSE');
+('SIN', 'TRIG'),
+('COS', 'TRIG'),
+('TAN', 'TRIG');
 INSERT INTO investments 
 (player_id, stock_id, investment_amount)
 VALUES
