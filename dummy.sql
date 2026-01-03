@@ -15,7 +15,6 @@ VALUES
 INSERT INTO games (game_name)
 VALUES
 ('Coin Toss');
-('Black Jack'),
 ('Spin The Wheel'),
 ('Rock-Paper-Scissors');
 INSERT INTO game_genres (game_id, game_genre)
