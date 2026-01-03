@@ -179,6 +179,12 @@ def friends():
                         (sender_id = %s AND receiver_id =  %s) OR
                         (sender_id = %s AND receiver_id = %s);
                 '''
+                existing_frn_query = '''
+                    SELECT befriender_id as sender FROM friendships
+                    WHERE
+                        (befriender_id = %s AND befriended_id =  %s) OR
+                        (befriender_id = %s AND befriended_id = %s);
+                '''
                 with conn.cursor() as cursor:
                     cursor.execute(
                         existing_frq_query,
@@ -186,6 +192,14 @@ def friends():
                     )
                     row = cursor.fetchone()
                     existing_frq = bool(row)
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        existing_frn_query,
+                        (target, player, player, target)
+                    )
+                    row = cursor.fetchone()
+                    existing_frn = bool(row)
+
                 if existing_frq:
                     resending = row['sender'] == player
                     accepting = row['sender'] == target
@@ -208,6 +222,8 @@ def friends():
                             cursor.execute(insertion_query, (target, player))
                             conn.commit()
                         flash('Friend request accepted')
+                elif existing_frn:
+                    flash("You have already befriended this person!")
                 else:    
                     insertion_query = '''
                         INSERT INTO friend_requests (sender_id, receiver_id)
@@ -671,12 +687,13 @@ def stocks():
         FROM investments i
         INNER JOIN players p ON p.player_id = i.player_id
         INNER JOIN stocks s ON s.stock_id = i.stock_id
-        WHERE p.player_id = %s;
-
+        WHERE p.player_id = %s
+        ORDER BY i.investment_date DESC;
     '''
     with conn.cursor() as cursor:
         cursor.execute(investments_query, (player_id,))
         invs = cursor.fetchall()
+
     
     submitting_data = request.method == "POST"
     selling = submitting_data and 'sell' in request.form
