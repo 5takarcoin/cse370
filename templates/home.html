@@ -1,166 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Money Game - {{fname}}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body {
-            display: flex;
-            min-height: 100vh;
-            flex-direction: column;
-            background-color: #f4f7f6;
-        }
-        .main-wrapper {
-            flex: 1;
-        }
-        /* Make navbar taller and more substantial */
-        .navbar {
-            min-height: 4.5rem; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .navbar-item img {
-            max-height: 3rem;
-        }
-        /* Shrink the footer padding */
-        .footer {
-            padding: 2rem 1.5rem 2rem; 
-            background-color: #ffffff !important;
-            border-top: 1px solid #e1e1e1;
-        }
-        /* Add a subtle hover effect to boxes */
-        .box {
-            border-radius: 8px;
-            transition: transform 0.2s;
-        }
-        .menu-list a {
-            padding: 0.75rem 1rem;
-        }
-    </style>
-</head>
-<body>
+{% extends "base.html" %}
 
-    <div class="main-wrapper">
-        <nav class="navbar is-success" role="navigation" aria-label="main navigation">
-            <div class="container">
-                <div class="navbar-brand">
-                    <a class="navbar-item" href="/">
-                        <strong class="is-size-3 has-text-white">💰 MoneyGame</strong>
-                    </a>
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+    <div class="column is-9">
+        <div class="box p-6">
+            <div class="columns is-vcentered">
+                <div class="column">
+                    <h1 class="title is-2 mb-2">Welcome, {{fname}}!</h1>
+                    <p class="subtitle is-5 has-text-grey">
+                        Viewing profile for <span class="has-text-success has-text-weight-bold">@{{username}}</span>
+                    </p>
                 </div>
-                
-                <div class="navbar-end">
-                    <div class="navbar-item">
-                        <div class="buttons">
-                            <form method="POST">
-                                <button type="submit" name="logout" value="logout" class="button is-white is-outlined has-text-weight-bold">
-                                    <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
-                                    <span>Logout</span>
-                                </button>
-                            </form>
-                        </div>
+                <div class="column is-narrow">
+                    <figure class="image is-96x96">
+                        <img class="is-rounded" src="https://ui-avatars.com/api/?name={{fname}}+{{lname}}&size=128&background=48c78e&color=fff" alt="Profile">
+                    </figure>
+                </div>
+            </div>
+            
+            <hr>
+
+            <div class="columns">
+                <div class="column">
+                    <div class="has-background-success-light p-5 has-radius-normal">
+                        <p class="heading has-text-success-dark">Personal Balance</p>
+                        <p style="color: black;" class="title is-3">{{ accbalance }}</p>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="has-background-info-light p-5 has-radius-normal">
+                        <p class="heading has-text-info-dark">Player ID</p>
+                        <p style="color: black;" class="title is-3">{{session['id']}}</p>
                     </div>
                 </div>
             </div>
-        </nav>
 
-        <section class="section">
-            <div class="container">
-                <div class="columns is-variable is-5">
-                    
-                    <div class="column is-3">
-                        <aside class="menu box">
-                            <p class="menu-label is-size-7">Main Dashboard</p>
-                            <ul class="menu-list">
-                                <li><a href="{{url_for('player_profile', username=username)}}" class="is-active"><i class="fas fa-id-badge mr-2"></i> My Profile</a></li>
-                                <li><a href="{{url_for('friends')}}"><i class="fas fa-user-friends mr-2"></i> Friends</a></li>
-                            </ul>
-                            <p class="menu-label is-size-7">Economy</p>
-                            <ul class="menu-list">
-                                <li><a href="{{url_for('bank')}}"><i class="fas fa-vault mr-2"></i> Bank Vault</a></li>
-                                <li><a href="#"><i class="fas fa-chart-line mr-2"></i> Stock Exchange</a></li>
-                            </ul>
-                            <p class="menu-label is-size-7">Play</p>
-                            <ul class="menu-list">
-                                <li><a href="{{url_for('games.games_home')}}"><i class="fas fa-dice mr-2"></i> Mini Games</a></li>
-                            </ul>
-                        </aside>
-                    </div>
-
-                    <div class="column is-9">
-                        <div class="box p-6">
-                            <div class="columns is-vcentered">
-                                <div class="column">
-                                    <h1 class="title is-2 mb-2">Welcome, {{fname}}!</h1>
-                                    <p class="subtitle is-5 has-text-grey">
-                                        Viewing profile for <span class="has-text-success has-text-weight-bold">@{{username}}</span>
-                                    </p>
-                                </div>
-                                <div class="column is-narrow">
-                                    <figure class="image is-96x96">
-                                        <img class="is-rounded" src="https://ui-avatars.com/api/?name={{fname}}+{{lname}}&size=128&background=48c78e&color=fff" alt="Profile">
-                                    </figure>
-                                </div>
-                            </div>
-                            
-                            <hr>
-
-                            <div class="columns">
-                                <div class="column">
-                                    <div class="has-background-success-light p-5 has-radius-normal">
-                                        <p class="heading has-text-success-dark">Account Balance</p>
-                                        <p class="title is-3">$1,450.00</p>
-                                    </div>
-                                </div>
-                                <div class="column">
-                                    <div class="has-background-info-light p-5 has-radius-normal">
-                                        <p class="heading has-text-info-dark">Current Level</p>
-                                        <p class="title is-3">Lvl. 14</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="content mt-5">
-                                <p class="is-size-5">
-                                    Everything looks good! You have <strong class="has-text-success">3 pending bank transfers</strong> and your stocks are up by <span class="tag is-success">2.4%</span> today.
-                                </p>
-                                <div class="buttons">
-                                    <a href="{{url_for('player_profile', username=username)}}" class="button is-success">Update Profile</a>
-                                    <a href="{{url_for('bank')}}" class="button is-light">Visit Bank</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <footer class="footer">
-        <div class="container">
-            <div class="level">
-                <div class="level-left">
-                    <div class="level-item">
-                        <p class="is-size-6">
-                            <strong>Money Game</strong> &copy; 2026. Built with Bulma.
-                        </p>
-                    </div>
-                </div>
-                <div class="level-right">
-                    <div class="level-item">
-                        <div class="field is-grouped">
-                            <p class="control"><a class="button is-small is-light">Discord</a></p>
-                            <p class="control"><a class="button is-small is-light">Terms</a></p>
-                            <p class="control"><a class="button is-small is-light">Support</a></p>
-                        </div>
-                    </div>
+            <div class="content mt-5">
+                <!-- <p class="is-size-5">
+                    Everything looks good! You have <strong class="has-text-success">3 pending bank transfers</strong> and your stocks are up by <span class="tag is-success">2.4%</span> today.
+                </p> -->
+                <div class="buttons">
+                    <!-- <a href="{{url_for('player_profile', username=username)}}" class="button is-success">Update Profile</a> -->
+                    <a href="{{url_for('games.games_home')}}" class="button is-success">Play Games</a>
+                    <a href="{{url_for('bank')}}" class="button is-light">Visit Bank</a>
+                    <a href="{{url_for('stocks')}}" class="button is-active">Invest in Stocks</a>
                 </div>
             </div>
         </div>
-    </footer>
+    </div>
 
-</body>
-</html>
+{% endblock %}

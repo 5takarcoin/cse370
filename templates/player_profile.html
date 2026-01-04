@@ -1,106 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{session['fname']}}'s profile</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body {
-            display: flex;
-            min-height: 100vh;
-            flex-direction: column;
-            background-color: #f4f7f6;
-        }
-        .main-wrapper {
-            flex: 1;
-        }
-        .navbar {
-            min-height: 4.5rem; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .footer {
-            padding: 2rem 1.5rem 2rem; 
-            background-color: #ffffff !important;
-            border-top: 1px solid #e1e1e1;
-        }
-        .box {
-            border-radius: 8px;
-            transition: transform 0.2s;
-        }
-        .menu-list a {
-            padding: 0.75rem 1rem;
-        }
-        /* Custom styling for details list to make it look better than plain bullets */
-        .details-list {
-            list-style: none !important;
-            margin-left: 0 !important;
-        }
-        .details-list li {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #eee;
-        }
-        .details-list li:last-child {
-            border-bottom: none;
-        }
-    </style>
-</head>
-<body>
+{% extends "base.html" %}
 
-    <div class="main-wrapper">
-        <nav class="navbar is-success" role="navigation" aria-label="main navigation">
-            <div class="container">
-                <div class="navbar-brand">
-                    <a class="navbar-item" href="/">
-                        <strong class="is-size-3 has-text-white">💰 MoneyGame</strong>
-                    </a>
-                </div>
-                
-                <div class="navbar-end">
-                    <div class="navbar-item">
-                        <div class="buttons">
-                            <form method="POST" action="{{ url_for('login') }}">
-                                <button type="submit" name="logout" value="logout" class="button is-white is-outlined has-text-weight-bold">
-                                   <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
-                                   <span>Logout</span>
-                               </button>
-                           </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
+{% block title %}Profile{% endblock %}
 
-        <section class="section">
-            <div class="container">
-                <div class="columns is-variable is-5">
-                    
-                    <div class="column is-3">
-                        <aside class="menu box">
-                            <p class="menu-label is-size-7">Main Dashboard</p>
-                            <ul class="menu-list">
-                                <li><a href="{{ url_for('player_profile', username=session['username']) }}" class="is-active"><i class="fas fa-id-badge mr-2"></i> My Profile</a></li>
-                                <li><a href="{{url_for('friends')}}"><i class="fas fa-user-friends mr-2"></i> Friends</a></li>
-                            </ul>
-                            <p class="menu-label is-size-7">Economy</p>
-                            <ul class="menu-list">
-                                <li><a href="{{url_for('bank')}}"><i class="fas fa-vault mr-2"></i> Bank Vault</a></li>
-                                <li><a href="#"><i class="fas fa-chart-line mr-2"></i> Stock Exchange</a></li>
-                            </ul>
-                            <p class="menu-label is-size-7">Play</p>
-                            <ul class="menu-list">
-                                <li><a href="{{url_for('games.games_home')}}"><i class="fas fa-dice mr-2"></i> Mini Games</a></li>
-                            </ul>
-                        </aside>
-                    </div>
+
+{% block content %}
 
                     <div class="column is-9">
                         <div class="box p-6">
                             <div class="columns is-vcentered">
                                 <div class="column">
-                                    <h1 class="title is-2 mb-2">
-                                        <a href='{{ url_for("player_profile", username=session["username"]) }}' class="has-text-dark">
+                                    <h1 class="title is-2 mb-2 ">
+                                        <a class="has-text-white">
                                             {{session['fname']}} {{session['lname']}}
                                         </a>
                                     </h1>
@@ -117,64 +27,112 @@
 
                             <div class="columns">
                                 <div class="column is-7">
-                                    <h3 class="title is-4">User Details</h3>
-                                    <ul class="details-list">
-                                        <li><strong>Name:</strong> {{session['fname']}} {{session['lname']}}</li>
-                                        <li><strong>Age:</strong> {{details['age']}}</li>
-                                        <li><strong>Personal Balance:</strong> <span class="has-text-success">${{details['personal_balance']}}</span></li>
-                                        <li><strong>Bank Balance:</strong> <span class="has-text-info">$12000.00</span></li>
-                                        <li><strong>Favourite Game:</strong> Rock-Paper-Scissors</li>
-                                        {% if friends %}
-                                        <li><strong>Best Friend:</strong> <a href="{{url_for('player_profile', username=friends[0]['username'])}}">{{friends[0]['name']}}</a></li>
-                                        {% endif %}
-                                    </ul>
-                                </div>
+    <div class="">
+        <header class="card-header">
+            <p class="card-header-title">
+                <span class="icon mr-2">
+                    <i class="fas fa-id-card"></i>
+                </span>
+                User Details
+            </p>
+        </header>
 
-                                <div class="column is-5">
-                                    <h3 class="title is-4">Friends</h3>
-                                    <div class="box has-background-light is-shadowless">
-                                        <ul class="menu-list">
-                                        {% for f in friends %}
-                                            <li>
-                                                <a href="{{url_for('player_profile', username=f['username'])}}">
-                                                    <span class="icon"><i class="fas fa-user-circle"></i></span> {{f['name']}}
-                                                </a>
-                                            </li>
-                                        {% endfor %}
-                                        </ul>
+        <div class="card-content">
+            <div class="content">
+                <ul class="details-list">
+                    <li>
+                        <strong>Name</strong>
+                        <span class="is-pulled-right">
+                            {{ session['fname'] }} {{ session['lname'] }}
+                        </span>
+                    </li>
+
+                    <li>
+                        <strong>Age</strong>
+                        <span class="is-pulled-right">
+                            {{ details['age'] }}
+                        </span>
+                    </li>
+
+                    <li>
+                        <strong>Personal Balance</strong>
+                        <span class="is-pulled-right has-text-success has-text-weight-bold">
+                            ${{ details['personal_balance'] }}
+                        </span>
+                    </li>
+
+                    <li>
+                        <strong>Bank Balance</strong>
+                        <span class="is-pulled-right has-text-info has-text-weight-bold">
+                            {{ more_details['bank_balance'] }}
+                        </span>
+                    </li>
+
+                    <li>
+                        <strong>Favourite Game</strong>
+                        <span class="is-pulled-right">
+                            {{ more_details['fav_game'] }}
+                        </span>
+                    </li>
+
+                    {% if friends %}
+                    <li>
+                        <strong>Best Friend</strong>
+                        <span class="is-pulled-right">
+                            <a href="{{ url_for('player_profile', username=friends[0]['username']) }}"
+                               class="has-text-link has-text-weight-semibold">
+                                {{ friends[0]['name'] }}
+                            </a>
+                        </span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+                                <div class="column is-5" style="border-left: 2px solid #ffffff11; padding-left:16px; margin-left: 16px;">
+                                    <h3 class="title is-4 has-text-weight-bold" >Mutual Friends</h3>
+                                    <div class="">
+                                        <div class="">
+                                            {% for f in mutuals %}
+                                                    <div class="is-flex is-align-items-center mb-3">
+                                                        <figure class="image is-32x32 mr-3">
+                                                            <img class="is-rounded"
+                                                                src="https://ui-avatars.com/api/?name={{ f['name'] }}&background=random">
+                                                        </figure>
+
+                                                        <div>
+                                                            <a class="has-text-weight-bold">
+                                                                {{ f['name'] }}
+                                                            </a>
+                                                            <p class="is-size-7 has-text-grey">@{{ f['username'] }}</p>
+                                                        </div>
+                                                    </div>
+                                            {% else %}
+                                                <div class="has-text-centered py-4">
+                                                    <p class="has-text-grey-light italic">No mutual friends found</p>
+
+                                                    <div class="mt-4"></div>
+
+                                                    {% if session['username'] != details['username'] %}
+                                                        <a href="{{ url_for('player_profile', username=session['username']) }}" 
+                                                        class="button is-small is-info is-light is-fullwidth mt-2 mutual-link">
+                                                            <span class="icon is-small">
+                                                                <i class="fas fa-arrow-left"></i>
+                                                            </span>
+                                                            <span>Back to my profile</span>
+                                                        </a>
+                                                    {% endif %}
+                                                    </div>
+                                            {% endfor %}
+                                            </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <footer class="footer">
-        <div class="container">
-            <div class="level">
-                <div class="level-left">
-                    <div class="level-item">
-                        <p class="is-size-6">
-                            <strong>Money Game</strong> &copy; 2026. Built with Bulma.
-                        </p>
-                    </div>
-                </div>
-                <div class="level-right">
-                    <div class="level-item">
-                        <div class="field is-grouped">
-                            <p class="control"><a class="button is-small is-light">Discord</a></p>
-                            <p class="control"><a class="button is-small is-light">Terms</a></p>
-                            <p class="control"><a class="button is-small is-light">Support</a></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-</body>
-</html>
+    
+{% endblock %}

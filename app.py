@@ -21,17 +21,38 @@ def home():
             first_name = session['fname']
             last_name = session['lname']
             username = session['username']
+
+            player_id = session['id'];
+
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            query = "SELECT personal_balance FROM players WHERE player_id = %s;"
+
+            cursor.execute(query, (player_id,))
+            result = cursor.fetchone()
+            
+            balance = result['personal_balance'] if result else 0
+
+            conn.close()
+
             return render_template(
                 'home.html',
                 username=username,
                 fname=first_name,
-                lname=last_name
+                lname=last_name,
+                accbalance=balance
             )
         else:
             return redirect(url_for('login'))
-    else:
-        if "logout" in request.form:
-            return redirect(url_for('login'))
+    # else:
+    #     if "logout" in request.form:
+    #         return redirect(url_for('login'))
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("Logged out successfully.")
+    return redirect(url_for("login"))
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -60,7 +81,7 @@ def login():
             return redirect(url_for('home'))
         else:
             flash("Username or password is incorrect!")
-            return render_template('login.html')
+            return redirect(url_for('login'))
 
     else:
         session.pop('id', None)
@@ -132,93 +153,100 @@ def signup():
 @app.route("/friends", methods=['GET', 'POST'])
 def friends():
     player_id = session['id']
+
+    if not player_id:
+        return redirect(url_for('login'))
+
     conn = get_db_connection()
 
-    submitting_data = request.method == 'POST'
-    accepting_frq = submitting_data and 'friend_id' in request.form
-    sending_frq = submitting_data and not accepting_frq
+    if request.method == 'POST':
+        submitting_data = request.method == 'POST'
+        accepting_frq = submitting_data and 'friend_id' in request.form
+        sending_frq = submitting_data and not accepting_frq
 
-    if accepting_frq:
-        insertion_query = '''
-            INSERT INTO friendships (befriender_id, befriended_id)
-            VALUES (%s, %s);
-        '''
-        deletion_query = '''
-            DELETE FROM friend_requests 
-            WHERE sender_id = %s AND receiver_id = %s;
-        '''
-        sender = request.form["friend_id"]
-        receiver = player_id
-        with conn.cursor() as cursor:
-            cursor.execute(insertion_query, (sender, receiver))
-            cursor.execute(deletion_query, (sender, receiver))
-            conn.commit()
+        if accepting_frq:
+            insertion_query = '''
+                INSERT INTO friendships (befriender_id, befriended_id)
+                VALUES (%s, %s);
+            '''
+            deletion_query = '''
+                DELETE FROM friend_requests 
+                WHERE sender_id = %s AND receiver_id = %s;
+            '''
+            sender = request.form["friend_id"]
+            receiver = player_id
+            with conn.cursor() as cursor:
+                cursor.execute(insertion_query, (sender, receiver))
+                cursor.execute(deletion_query, (sender, receiver))
+                conn.commit()
 
-    elif sending_frq:
-        target_username = request.form['username']
-        locating_query = '''
-            SELECT player_id FROM players
-            WHERE username = %s;
-        '''
-        with conn.cursor() as cursor:
-            cursor.execute(locating_query, (target_username,))
-            match = cursor.fetchone()
-            user_exists = bool(match)
+        elif sending_frq:
+            target_username = request.form['username']
+            locating_query = '''
+                SELECT player_id FROM players
+                WHERE username = %s;
+            '''
+            with conn.cursor() as cursor:
+                cursor.execute(locating_query, (target_username,))
+                match = cursor.fetchone()
+                user_exists = bool(match)
 
-        if user_exists:
-            target = match['player_id']
-            player = player_id
+            if user_exists:
+                target = match['player_id']
+                player = player_id
 
-            user_is_self = target == player
-            if user_is_self:
-                flash('You cannot add yourself as a friend!')
-            else:
-                existing_frq_query = '''
-                    SELECT sender_id as sender FROM friend_requests
-                    WHERE
-                        (sender_id = %s AND receiver_id =  %s) OR
-                        (sender_id = %s AND receiver_id = %s);
-                '''
-                with conn.cursor() as cursor:
-                    cursor.execute(
-                        existing_frq_query,
-                        (target, player, player, target)
-                    )
-                    row = cursor.fetchone()
-                    existing_frq = bool(row)
-                if existing_frq:
-                    resending = row['sender'] == player
-                    accepting = row['sender'] == target
-                    if resending:
-                        flash('You already sent this person a friend request')
-                    elif accepting:
-                        deletion_query = '''
-                            DELETE FROM friend_requests
-                            WHERE sender_id = %s AND receiver_id = %s
-                        '''
-                        insertion_query = '''
-                            INSERT INTO friendships (
-                                befriender_id,
-                                befriended_id
-                            )
-                            VALUES (%s, %s)
-                        '''
-                        with conn.cursor() as cursor:
-                            cursor.execute(deletion_query, (target, player))
-                            cursor.execute(insertion_query, (target, player))
-                            conn.commit()
-                        flash('Friend request accepted')
-                else:    
-                    insertion_query = '''
-                        INSERT INTO friend_requests (sender_id, receiver_id)
-                        VALUES (%s, %s);
+                user_is_self = target == player
+                if user_is_self:
+                    flash('You cannot add yourself as a friend!', 'warning')
+                else:
+                    existing_frq_query = '''
+                        SELECT sender_id as sender FROM friend_requests
+                        WHERE
+                            (sender_id = %s AND receiver_id =  %s) OR
+                            (sender_id = %s AND receiver_id = %s);
                     '''
                     with conn.cursor() as cursor:
-                        cursor.execute(insertion_query, (player, target))
-                        conn.commit()
-                    flash("Friend request sent!")
-        else:
-            flash("Player not found!")
+                        cursor.execute(
+                            existing_frq_query,
+                            (target, player, player, target)
+                        )
+                        row = cursor.fetchone()
+                        existing_frq = bool(row)
+                    if existing_frq:
+                        resending = row['sender'] == player
+                        accepting = row['sender'] == target
+                        if resending:
+                            flash('You already sent this person a friend request', 'warning')
+                        elif accepting:
+                            deletion_query = '''
+                                DELETE FROM friend_requests
+                                WHERE sender_id = %s AND receiver_id = %s
+                            '''
+                            insertion_query = '''
+                                INSERT INTO friendships (
+                                    befriender_id,
+                                    befriended_id
+                                )
+                                VALUES (%s, %s)
+                            '''
+                            with conn.cursor() as cursor:
+                                cursor.execute(deletion_query, (target, player))
+                                cursor.execute(insertion_query, (target, player))
+                                conn.commit()
+                            flash('Friend request accepted', 'success')
+                    else:    
+                        insertion_query = '''
+                            INSERT INTO friend_requests (sender_id, receiver_id)
+                            VALUES (%s, %s);
+                        '''
+                        with conn.cursor() as cursor:
+                            cursor.execute(insertion_query, (player, target))
+                            conn.commit()
+                        flash("Friend request sent!", 'success')
+            else:
+                flash("Player not found!", 'danger')
+
+        return redirect(url_for('friends'))
 
     with conn.cursor() as cursor:
         frn_query = '''
@@ -255,9 +283,11 @@ def friends():
         '''
         cursor.execute(frq_query, (player_id,))
         frq = cursor.fetchall()
+
+    friends = [{'name': "Nancy", 'username': "Suziepoo"}]
     
     conn.close()
-    return render_template("friends.html", frn=frn, frq=frq)
+    return render_template("friends.html", friends=friends, frn=frn, frq=frq)
 
 @app.route("/player/<username>")
 def player_profile(username):
@@ -274,6 +304,26 @@ def player_profile(username):
         FROM players 
         WHERE username=%s;
     '''
+    bank_query = '''
+    SELECT SUM(b.account_balance) AS total_balance
+    FROM ownership o
+    JOIN bank_accounts b ON o.account_no = b.account_no
+    WHERE o.player_id = %s;
+    '''
+
+    fav_game_query = '''
+    WITH game_counts AS (
+        SELECT g.game_name, COUNT(*) AS cnt
+        FROM game_sessions gs
+        JOIN games g ON gs.game_id = g.game_id
+        WHERE gs.player_id = %s
+        GROUP BY g.game_id, g.game_name
+    )
+    SELECT game_name
+    FROM game_counts
+    WHERE cnt = (SELECT MAX(cnt) FROM game_counts);
+    '''
+
     with conn.cursor() as cursor:
         cursor.execute(profile_query, (username,))
         profile_details = cursor.fetchone()
@@ -314,6 +364,23 @@ def player_profile(username):
         with conn.cursor() as cursor:
             cursor.execute(mutuals_query, (player, player, target, target))
             mutuals = cursor.fetchall()
+
+            cursor.execute(bank_query, (target,))
+            row = cursor.fetchone()
+            bank_balance = ('$'+str(row['total_balance'])) if row['total_balance'] is not None else "N/A"
+
+            cursor.execute(fav_game_query, (target,))
+            rows = cursor.fetchall()
+
+            if not rows:
+                fav_game = "N/A"
+            else:
+                fav_game = ", ".join(r['game_name'] for r in rows)
+
+        moredet = {
+            "bank_balance": bank_balance,
+            "fav_game": fav_game
+        }
     else:
         conn.close()
         abort(404)
@@ -322,7 +389,8 @@ def player_profile(username):
     return render_template(
         'player_profile.html',
         details=profile_details,
-        mutuals=mutuals
+        mutuals=mutuals,
+        more_details=moredet
         )
 
 @app.route('/bank/')
@@ -440,6 +508,9 @@ def deposit():
                 flash('Deposit successful!')
         else:
             flash("You don't have that much money!")
+        
+        return redirect(url_for('deposit'))
+
     profile_query = '''
         SELECT b.account_no, p.personal_balance, b.account_balance
         FROM bank_accounts b
@@ -495,6 +566,9 @@ def withdraw():
                 flash('Withdrew successfully!')
         else:
             flash("You don't have that much money!")
+
+        
+        return redirect(url_for('withdraw'))
 
     profile_query = '''
         SELECT b.account_no, p.personal_balance, b.account_balance
@@ -562,6 +636,26 @@ def transfer():
             )
             VALUES (%s, %s, %s, %s)
         '''
+        validation_query = '''
+        SELECT
+            EXISTS (
+                SELECT 1 FROM players WHERE username = %s 
+            ) AS ex
+        '''
+
+        with conn.cursor() as cursor:
+            cursor.execute(validation_query, (receiver_account,))
+            row = cursor.fetchone()
+            exists = bool(row['ex'])
+
+        if not exists:
+            flash("Username not found!")
+            return render_template(
+                'transfer.html',
+                account_no = account_no,
+                bank_balance = account_balance,
+                forminfo={"rec": amount, "memo": memo}
+                )
 
         if amount <= account_balance:
             with conn.cursor() as cursor:
@@ -578,12 +672,22 @@ def transfer():
                 return redirect(url_for('transfer'))
         else:
             flash("You don't have that much money!")
+            return render_template(
+                'transfer.html',
+                account_no = account_no,
+                bank_balance = account_balance,
+                forminfo={"receiver": receiver_account, "memo": memo}
+                )
+
+        
+        return redirect(url_for('transfer'))
 
     conn.close()
     return render_template(
         'transfer.html',
         account_no = account_no,
-        bank_balance = account_balance
+        bank_balance = account_balance,
+        forminfo={}
         )
 
 @app.route('/bank/transactions')

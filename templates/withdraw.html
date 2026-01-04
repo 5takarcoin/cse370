@@ -1,34 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Withdraw money</title>
-</head>
-<body>
-    <h1>Withdraw money</h1>
-    <p>Make sure you are logged into the right account and have sufficient balance</p>
+{% extends "base.html" %}
 
-    <h2>Your details</h2>
-    <ul>
-        <li>Name: {{ session['fname'] }} {{ session['lname'] }}</li>
-        <li>Account No: {{ account_no }}</li>
-        <li>Personal Balance: {{ personal_balance }}</li>
-        <li>Bank Balance: {{ bank_balance }}</li>
-    </ul>
-    <form method="post">
-        <div>
-            <label for="amount">Withdraw Amount</label>
-            <input type="number" min="{{5}}" step="1" name="amount" required>
+{% block title %}Withdraw Money{% endblock %}
+
+{% block content %}
+<div class="column is-9">
+    <div class="box p-6">
+        <h1 class="title is-2 mb-5"><i class="fas fa-arrow-up has-text-danger mr-3"></i>Withdraw Money</h1>
+
+        <div class="box p-5 mb-6 has-background-white-ter blackit" style="border: 1px solid #ddd;">
+            <h2 class="subtitle is-4 mb-4 blackit">Your Details</h2>
+            <ul class="content">
+                <li><strong class="blackit">Name:</strong> {{ session['fname'] }} {{ session['lname'] }}</li>
+                <li><strong class="blackit">Account No:</strong> {{ account_no }}</li>
+                <li><strong class="blackit">Personal Balance:</strong> <span class="has-text-success">${{ personal_balance }}</span></li>
+                <li><strong class="blackit">Bank Balance:</strong> <span class="has-text-info">${{ bank_balance }}</span></li>
+            </ul>
         </div>
 
-        <div>
-            <input type="submit" value="submit">
+        <div class="box p-5 has-background-white-ter blackit" style="border: 1px solid #ddd;">
+            <h2 class="subtitle is-4 mb-4 blackit">Withdraw Amount</h2>
+            <form method="post">
+                <div class="field mb-4">
+                    <label class="label blackit" for="amount">Amount</label>
+                    <div class="control">
+                        <input class="input" type="number" name="amount" min="5" step="1" placeholder="Min $5.00" required>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="control">
+                        <button class="button is-danger">Submit</button>
+                    </div>
+                </div>
+
+                {% if get_flashed_messages() %}
+                <div class="notification is-warning mt-4 blackit">
+                    {% for m in get_flashed_messages() %}
+                        <p>{{ m }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </form>
         </div>
-        <ul>
-        {% for m in get_flashed_messages() %}
-            <li>{{m}}</li>
-        {% endfor %}
-    </ul>
-</body>
-</html>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+<nav class="navbar is-success" role="navigation" aria-label="main navigation">
+            <div class="container">
+                <div class="navbar-brand">
+                    <a class="navbar-item" href="/">
+                        <strong class="is-size-3 has-text-white">💰 MoneyGame</strong>
+                    </a>
+                </div>
+                
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            <div class="is-flex mr-4 is-align-items-center mb-3">
+                                <figure class="image is-32x32 mr-3">
+                                    <img class="is-rounded"
+                                        src="https://ui-avatars.com/api/?name={{ session['fname'] }}&background=random">
+                                </figure>
+
+                                <div>
+                                    <a class="has-text-weight-bold" style="color: black;">
+                                        {{ session['fname'] }}
+                                    </a>
+                                    <p class="is-size-7 has-text-grey">@{{ session['username'] }}</p>
+                                </div>
+                            </div>
+                            <form method="GET" action="/logout">
+                                <button type="submit" class="button is-white is-outlined has-text-weight-bold">
+                                    <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                                    <span>Logout</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
