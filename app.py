@@ -74,11 +74,12 @@ def login():
 
         conn.close()
 
-        # entered_bytes = password.encode('utf-8')
-        # passbool = bcrypt.checkpw(entered_bytes, player['password'])
+        password_bytes = password.encode('utf-8')
+        stored_hash = player['password'].encode('utf-8') 
+        passbool = bcrypt.checkpw(password_bytes, stored_hash)
 
-        if player and player['password'] == password:
-        # if player and passbool:
+        # if player and player['password'] == password:
+        if player and passbool:
             session['id'] = player['player_id']
             session['username'] = player['username']
             session['fname'] = player['first_name']
@@ -105,10 +106,9 @@ def signup():
         dob = request.form['dob']
         password = request.form['password']
 
-        # password_bytes = password.encode('utf-8')
-        # salt = bcrypt.gensalt()
-        # hashed = bcrypt.hashpw(password_bytes, salt)
-        hashed = password
+        password_bytes = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password_bytes, salt)
 
         valid = True
 
