@@ -172,7 +172,9 @@ def friends():
     if request.method == 'POST':
         submitting_data = request.method == 'POST'
         accepting_frq = submitting_data and 'friend_id' in request.form
-        sending_frq = submitting_data and not accepting_frq
+        declining_frq = submitting_data and 'reject_id' in request.form
+        unfriending_frn = submitting_data and 'unfriend_id' in request.form
+        sending_frq = submitting_data and 'username' in request.form
 
         if accepting_frq:
             insertion_query = '''
@@ -189,7 +191,28 @@ def friends():
                 cursor.execute(insertion_query, (sender, receiver))
                 cursor.execute(deletion_query, (sender, receiver))
                 conn.commit()
-
+        elif declining_frq:
+            deletion_query = '''
+                DELETE FROM friend_requests 
+                WHERE sender_id = %s AND receiver_id = %s;
+            '''
+            sender = request.form["reject_id"]
+            receiver = player_id
+            with conn.cursor() as cursor:
+                cursor.execute(deletion_query, (sender, receiver))
+                conn.commit()
+        elif unfriending_frn:
+            deletion_query = '''
+                DELETE FROM friendships 
+                WHERE
+                    (befriender_id = %s AND befriended_id = %s)
+                    OR (befriender_id = %s AND befriended_id = %s);
+            '''
+            target = request.form["unfriend_id"]
+            player = player_id
+            with conn.cursor() as cursor:
+                cursor.execute(deletion_query, (target, player, player, target))
+                conn.commit()
         elif sending_frq:
             target_username = request.form['username']
             locating_query = '''
@@ -215,16 +238,30 @@ def friends():
                             (sender_id = %s AND receiver_id =  %s) OR
                             (sender_id = %s AND receiver_id = %s);
                     '''
+                    existing_frn_query = '''
+                    SELECT befriender_id as sender FROM friendships
+                    WHERE
+                        (befriender_id = %s AND befriended_id =  %s) OR
+                        (befriender_id = %s AND befriended_id = %s);
+                '''
                     with conn.cursor() as cursor:
                         cursor.execute(
                             existing_frq_query,
                             (target, player, player, target)
                         )
-                        row = cursor.fetchone()
-                        existing_frq = bool(row)
+                        frq_row = cursor.fetchone()
+                        existing_frq = bool(frq_row)
+
+                    with conn.cursor() as cursor:
+                        cursor.execute(
+                        existing_frn_query,
+                        (target, player, player, target)
+                    )
+                    frn_row = cursor.fetchone()
+                    existing_frn = bool(frn_row)
                     if existing_frq:
-                        resending = row['sender'] == player
-                        accepting = row['sender'] == target
+                        resending = frq_row['sender'] == player
+                        accepting = frq_row['sender'] == target
                         if resending:
                             flash('You already sent this person a friend request', 'warning')
                         elif accepting:
@@ -244,6 +281,8 @@ def friends():
                                 cursor.execute(insertion_query, (target, player))
                                 conn.commit()
                             flash('Friend request accepted', 'success')
+                    elif existing_frn:
+                        flash("You have already befriended this person!")
                     else:    
                         insertion_query = '''
                             INSERT INTO friend_requests (sender_id, receiver_id)
@@ -262,7 +301,8 @@ def friends():
         frn_query = '''
                 SELECT
                     CONCAT(p.first_name, " ", p.last_name) AS name,
-                    p.username
+                    p.username,
+                    p.player_id
                 FROM (
                     SELECT befriended_id AS friend_id
                     FROM friendships
@@ -316,14 +356,18 @@ def player_profile(username):
     
     profile_query = '''
         SELECT
-            username,
-            player_id,
-            first_name,
-            CONCAT(first_name, " ", last_name) AS name,
-            TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) AS age,
-            personal_balance 
-        FROM players 
-        WHERE username=%s;
+            p.username,
+            p.player_id,
+            p.first_name,
+            CONCAT(p.first_name, " ", p.last_name) AS name,
+            TIMESTAMPDIFF(YEAR, p.date_of_birth, CURDATE()) AS age,
+            p.personal_balance,
+            b.account_balance,
+            b.account_no
+        FROM players p
+        INNER JOIN ownership o ON o.player_id = p.player_id
+        INNER JOIN bank_accounts b ON b.account_no = o.account_no
+        WHERE p.username=%s;
     '''
     bank_query = '''
     SELECT SUM(b.account_balance) AS total_balance
@@ -386,6 +430,13 @@ def player_profile(username):
             cursor.execute(mutuals_query, (player, player, target, target))
             mutuals = cursor.fetchall()
 
+        with conn.cursor() as cursor:
+            cursor.execute(friendship_query, (player, target, target, player))
+            row = cursor.fetchone()
+            is_friend = row['is_friend']
+            if not is_friend: profile_details.pop('account_no', None)
+
+        with conn.cursor() as cursor:
             cursor.execute(bank_query, (target,))
             row = cursor.fetchone()
             bank_balance = ('$'+str(row['total_balance'])) if row['total_balance'] is not None else "N/A"
@@ -784,12 +835,16 @@ def get_stock_rate(func):
 
 @app.route('/stocks', methods=['GET', 'POST'])
 def stocks():
+    balance_query = 'SELECT personal_balance FROM players WHERE player_id = %s'
     player_id = session['id']
     conn = get_db_connection()
     market_query = '''
         SELECT stock_id, abbreviation, exchange FROM stocks
     '''
     with conn.cursor() as cursor:
+        cursor.execute(balance_query, (player_id,))
+        row = cursor.fetchone()
+        balance = row['personal_balance']
         cursor.execute(market_query)
         stocks = cursor.fetchall()
         for s in stocks:
@@ -806,6 +861,7 @@ def stocks():
         INNER JOIN players p ON p.player_id = i.player_id
         INNER JOIN stocks s ON s.stock_id = i.stock_id
         WHERE p.player_id = %s;
+        ORDER BY i.investment_date DESC;
 
     '''
     with conn.cursor() as cursor:
@@ -920,7 +976,7 @@ def stocks():
         return redirect(url_for('stocks'))
     
     conn.close()
-    return render_template('stocks.html', stocks=stocks, investments=invs)
+    return render_template('stocks.html', stocks=stocks, investments=invs, balance=balance)
     
 if __name__ == "__main__":
     app.run(debug=True)
