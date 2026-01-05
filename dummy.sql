@@ -11,16 +11,6 @@ VALUES
 INSERT INTO friendships (befriender_id, befriended_id)
 VALUES
 (1, 3);
-INSERT INTO games (game_id, game_name)
-VALUES
-(0, 'Coin Toss'),
-(1, 'Rock Paper Scissors'),
-(2, 'Spin The Wheel');
-INSERT INTO game_genres (game_id, game_genre)
-VALUES
-(0, 'Luck'),
-(1, 'Strategy'),
-(2, 'Carnival');
 INSERT INTO game_sessions 
 (game_id, player_id, session_no, session_start_time, session_end_time, score)
 VALUES

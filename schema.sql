@@ -93,3 +93,37 @@ CREATE TABLE investments (
         PRIMARY KEY(player_id, stock_id, investment_date)
 );
 
+INSERT INTO players 
+(first_name, last_name, username, email, password, date_of_birth, personal_balance)
+VALUES
+('System', 'Account', 'sys', 'admin@moneygame.com', 'hashed_pw_1', '2000-05-10', 1000000.00);
+
+INSERT INTO bank_accounts (account_no, account_type, account_balance)
+VALUES
+('MONEYGAME-LIME-00000', 'Lime', 999999),
+('MONEYGAME-BLUE-00000', 'Blue', 999999),
+('MONEYGAME-PINK-00000', 'Pink', 999999);
+
+INSERT INTO ownership (player_id, account_no)
+VALUES
+(0, 'MONEYGAME-LIME-00001'),
+(0, 'MONEYGAME-BLUE-00002'),
+(0, 'MONEYGAME-PINK-00003');
+
+INSERT INTO stocks (abbreviation, exchange)
+VALUES
+('SIN', 'TRIG'),
+('COS', 'TRIG'),
+('TAN', 'TRIG');
+
+INSERT INTO games (game_name)
+VALUES
+('Coin Toss'),
+('Rock Paper Scissors'),
+('Spin The Wheel');
+
+INSERT INTO game_genres (game_id, game_genre)
+VALUES
+(1, 'Luck'),
+(2, 'Strategy'),
+(3, 'Carnival');
