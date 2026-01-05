@@ -6,59 +6,61 @@ games = Blueprint("games", __name__, static_folder="static", template_folder="te
 def normalize_game_name(str):
     return str.lower().replace(" ", "_").replace("-", "_").replace("'", "_")
 
-def create_a_session_for_game(game_id):
+def start_game(game_name):
     conn = get_db_connection()
-    cursor = conn.cursor()
-
     player_id = session['id']
 
-    cursor.execute(
-        """
-        SELECT session_no
-        FROM game_sessions
-        WHERE game_id = %s AND player_id = %s AND session_end_time IS NULL
-        """,
-        (game_id, player_id)
-    )
-    active_session = cursor.fetchone()
+    balance_query = '''
+        SELECT personal_balance FROM players
+        WHERE player_id = %s;
+    '''
+    game_id_query = '''
+        SELECT game_id FROM games
+        WHERE LOWER(REPLACE(game_name, ' ', '_')) = %s
+    '''
+    existing_session_query = '''
+        SELECT gs.session_no, gs.session_end_time
+        FROM game_sessions gs
+        INNER JOIN games g ON gs.game_id = g.game_id
+        INNER JOIN players p ON p.player_id = gs.player_id
+        WHERE LOWER(REPLACE(g.game_name, ' ', '_')) = %s AND p.player_id = %s
+        ORDER BY gs.session_start_time DESC
+        LIMIT 1
+    '''
+    insertion_query = '''
+        INSERT INTO game_sessions (game_id, player_id, session_no, score)
+        VALUES (%s, %s, %s, %s);
+    '''
 
-    if active_session:
-        next_session_no = active_session["session_no"]
-    else:
-        cursor.execute(
-            """
-            SELECT MAX(session_no) AS max_session_no
-            FROM game_sessions
-            WHERE game_id = %s AND player_id = %s
-            """,
-            (game_id, player_id)
-        )
+    with conn.cursor() as cursor:
+        cursor.execute(balance_query, (player_id,))
         row = cursor.fetchone()
-        next_session_no = (row["max_session_no"] or 0) + 1
+        balance = row['personal_balance']
 
-        cursor.execute(
-            """
-            INSERT INTO game_sessions
-            (game_id, player_id, session_no, score)
-            VALUES (%s, %s, %s, %s)
-            """,
-            (game_id, player_id, next_session_no, 0)
-        )
+        cursor.execute(game_id_query, (game_name,))
+        row = cursor.fetchone()
+        game_id = row['game_id']
 
-    query = "SELECT personal_balance FROM players WHERE player_id = %s;"
+    with conn.cursor() as cursor:
+        cursor.execute(existing_session_query, (game_name, player_id))
+        row = cursor.fetchone()
+        has_active_session = bool(row) and row['session_end_time'] == None
+        has_inactive_session = bool(row) and not has_active_session
 
-    cursor.execute(query, (player_id,))
-    result = cursor.fetchone()
+    if has_active_session:
+        session_no = row['session_no']
+    elif has_inactive_session:
+        session_no = row['session_no'] + 1
+    else:
+        session_no = 1
     
-    balance = result['personal_balance'] if result else 0
+    if not has_active_session:
+        with conn.cursor() as cursor:
+            cursor.execute(insertion_query, (game_id, player_id, session_no, 0))
+            conn.commit()
 
-
-    conn.commit()
-    cursor.close()
     conn.close()
-
-    return next_session_no, balance
-
+    return session_no, balance, game_id
 
 @games.route("/", methods=['GET'])
 def games_home():
@@ -91,33 +93,14 @@ def games_home():
     return render_template('games_home.html', games=games, game_session_id=game_session_id, player_id=player_id)
 
 
-@games.route("/coin_toss")
-def coin_toss():
-    session_id, accbalance = create_a_session_for_game(0)
-    if accbalance < 0:
+@games.route("/play/<game_name>")
+def play_game(game_name):
+    session_id, balance, game_id = start_game(game_name)
+    if balance == 0:
         flash("You are out of money :(")
-        return redirect(url_for('home'))
-    return render_template("coin_toss.html", session_id=session_id, accbalance=accbalance)
-
-
-@games.route("/rock_paper_scissors")
-def rock_paper_scissors():
-    session_id, accbalance = create_a_session_for_game(1)
-    if accbalance < 0:
-        flash("You are out of money :(")
-        return redirect(url_for('home'))
-    return render_template("rock_paper_scissors.html", session_id=session_id, accbalance=accbalance)
-
-
-@games.route("/spin_the_wheel")
-def spin_the_wheel():
-    session_id, accbalance = create_a_session_for_game(2)
-    if accbalance < 0:
-        flash("You are out of money :(")
-        return redirect(url_for('home'))
-    return render_template("spin_the_wheel.html", session_id=session_id, accbalance=accbalance)
-
-
+        return redirect(url_for('games'))
+    template = game_name + '.html'
+    return render_template(template, session_id=session_id, balance=balance, game_id=game_id)
 
 @games.route("/start_session", methods=["POST"])
 def start_session():
@@ -144,7 +127,7 @@ def start_session():
     cursor.close()
     conn.close()
 
-    session['game_session_id'] = session_id;
+    session['game_session_id'] = session_id
 
     return redirect('/games')
 
@@ -253,7 +236,7 @@ def history(player):
     return render_template("history.html", sessions=sessions)
 
 @games.route("/save_score", methods=["POST"])
-def save_coin_score():
+def save_score():
     session_no = int(request.form['session_id'])
     score = int(request.form['score'])
     game_id = int(request.form['game_id'])
@@ -281,8 +264,8 @@ def save_coin_score():
 
     cursor.close()
     conn.close()
-    if balance < 0:
+    if balance == 0:
         flash("You are out of money :(", "danger")
     else:
         flash("Game session saved successfully!", "success")
-    return redirect(url_for('home'))
+    return redirect(url_for('games.games_home'))

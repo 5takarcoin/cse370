@@ -84,6 +84,7 @@ def login():
             session['username'] = player['username']
             session['fname'] = player['first_name']
             session['lname'] = player['last_name']
+            session['last_login'] = datetime.now()
             return redirect(url_for('home'))
         else:
             flash("Username or password is incorrect!")

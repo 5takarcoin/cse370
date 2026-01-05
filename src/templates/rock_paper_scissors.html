@@ -25,17 +25,17 @@
         <div class="mb-4">
         <span class="tag is-dark is-medium">Session: {{ session_id }}</span>
         <span class="tag is-success is-medium ml-2" id="score">Score: 0</span>
-        <span class="tag is-info is-medium ml-2" id="balance">Balance: ${{ accbalance }}</span>
+        <span class="tag is-info is-medium ml-2" id="balance">Balance: ${{ balance }}</span>
     </div>
 
         <h1 class="title is-2 mb-2">Rock Paper Scissors</h1>
 
         <!-- Multiplier slider -->
         <div class="mb-4">
-            <label for="multiplier" class="has-text-weight-bold flex black-text">Multiplier X 
-                <span id="multiplier-text">100</span>
+            <label for="multiplier" class="has-text-weight-bold flex black-text">Bid: $
+                <span id="multiplier-text">{{ balance/2 | round }}</span>
             </label>
-            <input type="range" id="multiplier" min="10" max="500" step="10" value="100">
+            <input type="range" id="multiplier" min="10" max="{{ balance}}" step="10" value="{{ balance/2 | round }}">
         </div>
 
         <div class="buttons is-centered mb-6">
@@ -63,16 +63,16 @@
 </div>
 
         <!-- Hidden form to send score to backend -->
-        <form id="save-form" method="POST" action="/games/save_score">
+        <form id="save-form" method="POST" action="{{ url_for('games.save_score') }}">
             <input type="hidden" name="session_id" value="{{ session_id }}">
-            <input type="hidden" name="game_id" value="1">
+            <input type="hidden" name="game_id" value="{{ game_id }}">
             <input type="hidden" name="score" id="form-score" value="0">
             <input type="hidden" name="balance" id="balance-to-send" value="0">
         </form>
     </div>
 
     <div class="mt-4">
-        <a class="button is-info is-light is-fullwidth" href="/games/rock_paper_scissors/leaderboard">
+        <a class="button is-info is-light is-fullwidth" href="{{ url_for('games.leaderboard', game_name='rock_paper_scissors') }}">
             <span class="icon"><i class="fas fa-trophy"></i></span>
             <span>View Rock Paper Scissors Leaderboard</span>
         </a>

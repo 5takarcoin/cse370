@@ -46,7 +46,7 @@
                 <div class="column is-12-mobile is-6-tablet is-4-desktop">
                     <p class="is-size-5 has-text-weight-bold mb-4">{{ game.genres }}</p>
                     <div class="box game-card has-text-centered p-5"
-                        onclick="location.href='/games/{{ game.normalized_name }}'">
+                        onclick="location.href='{{ url_for('games.play_game', game_name=game.normalized_name) }}'">
                         <span class="icon is-large has-text-success mb-3">
                             {% if game.normalized_name == 'coin_toss' %}
                                 <i class="fas fa-circle-half-stroke fa-2x"></i>
@@ -68,7 +68,7 @@
                             <hr>
 
                             <div class="mt-5">
-                                <a class="box leaderboard p-5 has-text-centered" href="/games/history/{{session['username']}}">
+                                <a class="box leaderboard p-5 has-text-centered" href="{{ url_for('games.history', player=session['username']) }}">
                                     <div class="columns is-vcentered">
                                         <div class="column is-narrow">
                                             <span class="icon is-large"><i class="fas fa-history fa-2x"></i></span>
@@ -84,7 +84,7 @@
                                 </a>
                             </div>
                             <div class="mt-5">
-                                <a class="box leaderboard-banner p-5 has-text-centered" href="/games/leaderboard">
+                                <a class="box leaderboard-banner p-5 has-text-centered" href="{{ url_for('games.leaderboard_all') }}">
                                     <div class="columns is-vcentered">
                                         <div class="column is-narrow">
                                             <span class="icon is-large"><i class="fas fa-trophy fa-2x"></i></span>
