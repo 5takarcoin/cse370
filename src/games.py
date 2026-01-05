@@ -12,7 +12,6 @@ def create_a_session_for_game(game_id):
 
     player_id = session['id']
 
-    # get next session number for this game + player
     cursor.execute(
         """
         SELECT MAX(session_no) AS max_session_no
@@ -25,7 +24,6 @@ def create_a_session_for_game(game_id):
     row = cursor.fetchone()
     next_session_no = (row["max_session_no"] or 0) + 1
 
-    # insert session
     cursor.execute(
         """
         INSERT INTO game_sessions
@@ -33,13 +31,20 @@ def create_a_session_for_game(game_id):
         VALUES (%s, %s, %s, %s)
         """,
         (game_id, player_id, next_session_no, 0)
-    )
+
+    query = "SELECT personal_balance FROM players WHERE player_id = %s;"
+
+    cursor.execute(query, (player_id,))
+    result = cursor.fetchone()
+    
+    balance = result['personal_balance'] if result else 0
+
 
     conn.commit()
     cursor.close()
     conn.close()
 
-    return next_session_no
+    return next_session_no, accbalance
 
 
 @games.route("/", methods=['GET'])
@@ -47,10 +52,19 @@ def games_home():
     conn = get_db_connection()
     cursor = conn.cursor()        
 
-    query = "SELECT * from games;"
+    query = """
+    SELECT
+        g.game_id,
+        g.game_name,
+        GROUP_CONCAT(gg.game_genre ORDER BY gg.game_genre SEPARATOR ', ') AS genres
+    FROM games g
+    LEFT JOIN game_genres gg ON g.game_id = gg.game_id
+    GROUP BY g.game_id, g.game_name;
+"""
 
     cursor.execute(query)
     games = cursor.fetchall()
+
     cursor.close()
     conn.close()
 
@@ -61,16 +75,13 @@ def games_home():
         normalized = normalize_game_name(game["game_name"])
         game["normalized_name"] = normalized
 
-    print("Meow", games)
-
     return render_template('games_home.html', games=games, game_session_id=game_session_id, player_id=player_id)
 
-from flask import redirect, render_template, session
 
 @games.route("/coin_toss")
 def coin_toss():
-    session_id = create_a_session_for_game(0)
-    return render_template("coin_toss.html", session_id=session_id)
+    session_id, accbalance = create_a_session_for_game(0)
+    return render_template("coin_toss.html", session_id=session_id, accbalance=accbalance)
 
 
 @games.route("/rock_paper_scissors")
@@ -143,14 +154,20 @@ def leaderboard(game_name):
 
     game_id, original_name = get_game_id(game_name)
 
-    # get top scores for this game
-    cursor.execute("""
-        SELECT player_id, MAX(score) AS max_score
-        FROM game_sessions
-        WHERE game_id = %s
-        GROUP BY player_id
-        ORDER BY max_score DESC
-    """, (game_id,))
+    query = """
+        SELECT 
+            gs.player_id,
+            p.username,
+            CONCAT(p.first_name, ' ', p.last_name) AS fullname,
+            MAX(gs.score) AS max_score
+        FROM game_sessions gs
+        INNER JOIN players p ON gs.player_id = p.player_id
+        WHERE gs.game_id = %s
+        GROUP BY gs.player_id, p.username, p.first_name, p.last_name
+        ORDER BY max_score DESC;
+    """
+
+    cursor.execute(query, (game_id,))
 
     top_players = cursor.fetchall()
     cursor.close()
@@ -163,20 +180,51 @@ def leaderboard_all():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # get top scores for all games
-    cursor.execute("""
-        SELECT 
-        s.player_id, 
-        MAX(s.score) AS max_score, 
+    query = '''SELECT 
+        s.player_id,
+        CONCAT(p.first_name, ' ', p.last_name) AS fullname,
+        p.username,
+        MAX(s.score) AS max_score,
         g.game_name
-        FROM game_sessions s
-        JOIN games g ON s.game_id = g.game_id
-        GROUP BY s.player_id, g.game_name
-        ORDER BY max_score DESC;
-    """)
+    FROM game_sessions s
+    JOIN games g ON s.game_id = g.game_id
+    JOIN players p ON s.player_id = p.player_id
+    GROUP BY s.player_id, g.game_name
+    ORDER BY max_score DESC;
+    '''
+
+    cursor.execute(query)
 
     top_players = cursor.fetchall()
     cursor.close()
     conn.close()
 
     return render_template("leaderboard.html", game_name="All", top_players=top_players)
+
+@games.route("/history/<player>")
+def history(player):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    query = '''SELECT 
+        gs.session_no,
+        gs.session_start_time,
+        gs.session_end_time,
+        gs.score,
+        g.game_id,
+        g.game_name,
+        p.username,
+        CONCAT(p.first_name, ' ', p.last_name) AS player_name
+    FROM game_sessions gs
+    JOIN games g ON gs.game_id = g.game_id
+    JOIN players p ON gs.player_id = p.player_id
+    WHERE gs.player_id = %s;
+    '''
+
+    cursor.execute(query, (session['id'],))
+
+    sessions = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    return render_template("history.html", sessions=sessions)

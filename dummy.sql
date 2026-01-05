@@ -18,11 +18,9 @@ VALUES
 ('Rock Paper Scissors');
 INSERT INTO game_genres (game_id, game_genre)
 VALUES
-(1, 'Folk'),
-(2, 'Card'),
-(3, 'Carnival'),
-(2, 'Strategy'),
-(4, 'Folk');
+(0, 'Luck'),
+(1, 'Strategy'),
+(2, 'Carnival'),
 INSERT INTO game_sessions 
 (game_id, player_id, session_no, session_start_time, session_end_time, score)
 VALUES

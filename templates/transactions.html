@@ -1,32 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transaction history</title>
-</head>
-<body>
-    <h2>Showing latest 20 transactions</h1>
-    <table>
-        <thead>
-            <th>Date</th>
-            <th>From</th>
-            <th>To</th>
-            <th>Amount</th>
-            <th>Memo</th>
-        </thead>
-        <tbody>
-            {% for t in transactions %}
-            <tr>
-                <td> {{ t['transaction_date'] }}</td>
-                <td> {{ t['sender_account'] }}</td>
-                <td> {{ t['receiver_account'] }}</td>
-                <td> {{ t['transaction_amount'] }}</td>
-                <td> {{ t['memo'] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block title %}Transaction History{% endblock %}
+
+{% block content %}
+<div class="column is-9">
+    <div class="box p-6">
+        <h1 class="title is-2 mb-5"><i class="fas fa-history has-text-warning mr-3"></i>Transaction History</h1>
+        <p class="subtitle is-5 mb-5">Showing latest 20 transactions</p>
+
+        <div class="table-container">
+            <table class="table is-fullwidth is-striped is-hoverable">
+                <thead>
+                    <tr>
+                        <th class="blackit">Date</th>
+                        <th class="blackit">From</th>
+                        <th class="blackit">To</th>
+                        <th class="blackit">Amount</th>
+                        <th class="blackit">Memo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in transactions %}
+                    <tr>
+                        <td class="blackit">{{ t['transaction_date'] }}</td>
+                        <td class="blackit">{{ t['sender_account'] }}</td>
+                        <td class="blackit">{{ t['receiver_account'] }}</td>
+                        <td class="has-text-success">${{ t['transaction_amount'] }}</td>
+                        <td class="blackit">{{ t['memo'] or '-' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="has-text-centered blackit">No transactions yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

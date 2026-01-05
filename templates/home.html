@@ -23,6 +23,15 @@
             <hr>
 
             <div class="columns">
+                <div>
+                    {% if get_flashed_messages() %}
+                    <div class="notification is-warning mt-4" style="color: #111;">
+                        {% for m in get_flashed_messages() %}
+                            <p>{{ m }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
                 <div class="column">
                     <div class="has-background-success-light p-5 has-radius-normal">
                         <p class="heading has-text-success-dark">Personal Balance</p>
@@ -36,18 +45,48 @@
                     </div>
                 </div>
             </div>
+            
 
-            <div class="content mt-5">
-                <!-- <p class="is-size-5">
-                    Everything looks good! You have <strong class="has-text-success">3 pending bank transfers</strong> and your stocks are up by <span class="tag is-success">2.4%</span> today.
-                </p> -->
-                <div class="buttons">
-                    <!-- <a href="{{url_for('player_profile', username=username)}}" class="button is-success">Update Profile</a> -->
-                    <a href="{{url_for('games.games_home')}}" class="button is-success">Play Games</a>
-                    <a href="{{url_for('bank')}}" class="button is-light">Visit Bank</a>
-                    <a href="{{url_for('stocks')}}" class="button is-active">Invest in Stocks</a>
-                </div>
+            <div class="columns is-multiline">
+    
+    <div class="column is-12">
+        <a href="{{ url_for('games.games_home') }}" class="box game-card p-5 is-flex is-align-items-center">
+            <span class="icon is-large has-text-success mr-4">
+                <i class="fas fa-coins fa-2x"></i>
+            </span>
+            <div>
+                <p class="is-size-5 has-text-weight-bold">Play Games</p>
+                <p class="is-size-7 has-text-grey">Wager and earn money</p>
             </div>
+        </a>
+    </div>
+
+    <div class="column is-12">
+        <a href="{{ url_for('bank') }}" class="box game-card p-5 is-flex is-align-items-center">
+            <span class="icon is-large has-text-info mr-4">
+                <i class="fas fa-university fa-2x"></i>
+            </span>
+            <div>
+                <p class="is-size-5 has-text-weight-bold">Visit Bank</p>
+                <p class="is-size-7 has-text-grey">Deposit and manage funds</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="column is-12">
+        <a href="{{ url_for('stocks') }}" class="box game-card p-5 is-flex is-align-items-center">
+            <span class="icon is-large has-text-success mr-4">
+                <i class="fas fa-chart-line fa-2x"></i>
+            </span>
+            <div>
+                <p class="is-size-5 has-text-weight-bold">Invest in Stocks</p>
+                <p class="is-size-7 has-text-grey">Buy and sell shares</p>
+            </div>
+        </a>
+    </div>
+
+</div>
+
         </div>
     </div>
 

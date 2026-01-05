@@ -1,0 +1,29 @@
+<div class="column is-3">
+    <aside class="menu box">
+        <ul class="menu-list">
+            <li><a href="{{url_for('home')}}" 
+                class="{{ 'is-active' if request.path == '/' else '' }}"
+                ><i class="fas fa-home mr-2"></i> Home</a></li>
+        </ul>
+        <p class="menu-label is-size-7">Main Dashboard</p>
+        <ul class="menu-list">
+            <li><a href="{{url_for('player_profile', username=session['username'])}}" 
+                class="{{ 'is-active' if request.path.startswith('/player') else '' }}"
+                ><i class="fas fa-id-badge mr-2"></i> My Profile</a></li>
+            <li><a href="{{url_for('friends')}}"  class="{{ 'is-active' if request.path.startswith('/friends') else '' }}"><i class="fas fa-user-friends mr-2"></i> Friends</a></li>
+        </ul>
+        <p class="menu-label is-size-7">Economy</p>
+        <ul class="menu-list">
+            <li>
+                <a href="{{ url_for('bank') }}" class="{{ 'is-active' if request.path.startswith('/bank') else '' }}">
+                    <i class="fas fa-university mr-2"></i> Bank
+                </a>
+            </li>
+            <li><a href="{{ url_for('stocks') }}" class="{{ 'is-active' if request.path.startswith('/stocks') else '' }}"><i class="fas fa-chart-line mr-2"></i> Stock Exchange</a></li>
+        </ul>
+        <p class="menu-label is-size-7">Play</p>
+        <ul class="menu-list">
+            <li><a href="{{url_for('games.games_home')}}" class="{{ 'is-active' if request.path.startswith('/games') else '' }}"><i class="fas fa-dice mr-2"></i> Games</a></li>
+        </ul>
+    </aside>
+</div>

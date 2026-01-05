@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}My Game Sessions{% endblock %}
+
+{% block content %}
+<div class="column is-9">
+    <div class="box p-6">
+        <div class="columns is-vcentered mb-5">
+            <div class="column">
+                <h1 class="title is-2 mb-2">Game History</h1>
+                <p class="subtitle is-5 has-text-grey">
+                    Reviewing sessions for: <span class="has-text-weight-semibold has-text-grey-light">{{session['fname']}} {{session['lname']}}</span> <span class="has-text-info ">@{{ session['username'] }}</span>
+                </p>
+            </div>
+            <div class="column is-narrow has-text-centered">
+                <span class="icon is-large has-text-info">
+                    <i class="fas fa-history fa-3x"></i>
+                </span>
+            </div>
+        </div>
+
+        {% if sessions %}
+        <div class="table-container">
+            <table class="table is-fullwidth is-striped">
+                <thead>
+                    <tr>
+                        <th class="has-text-centered">#</th>
+                        <th>Date</th>
+                        <!-- <th>Player</th> -->
+                        <th>Game</th>
+                        <th class="has-text-centered">Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in sessions %}
+                    <tr>
+                        <td class="has-text-centered has-text-weight-bold">
+                            {{ loop.index }}
+                        </td>
+                        <td class="is-size-7">
+                            <span class="has-text-weight-semibold">
+                                {{ s['session_start_time'].strftime('%b %d, %Y') }}
+                            </span>
+                            <br>
+                            <span class="has-text-grey">
+                                {{ s['session_start_time'].strftime('%I:%M %p') }}
+                            </span>
+                        </td>
+
+                        <!-- <td>
+                            <div class="is-flex is-align-items-center">
+                                <figure class="image is-24x24 mr-2">
+                                    <img class="is-rounded" src="https://ui-avatars.com/api/?name={{ s['username'] }}&background=random">
+                                </figure>
+                                <span style="color: #dddddd;">
+                                    {{ s['name'] }} 
+                                    <span style="font-size: smaller; color: #cccccc;">
+                                        <p>{{ s[''] }}</p>
+                                        <i>@{{ s['username'] }}</i>
+                                    </span>
+                                </span>
+                            </div>
+                        </td> -->
+
+                        <td>
+                            <span class=" is-dark">{{ s['game_name'] }}</span>
+                        </td>
+
+                        <td class="has-text-centered has-text-weight-bold has-text-success">
+                            {{ "{:,}".format(s['score']) }}
+                        </td>
+
+                        <!-- <td class="has-text-centered">
+                            {% if s['session_end_time'] %}
+                                <span class="icon has-text-grey-light" title="Finished">
+                                    <i class="fas fa-check-circle"></i>
+                                </span>
+                            {% else %}
+                                <span class="tag is-warning is-light">Active</span>
+                            {% endif %}
+                        </td> -->
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="notification is-light has-text-centered py-6">
+            <span class="icon is-large has-text-grey-lighter mb-3">
+                <i class="fas fa-gamepad fa-3x"></i>
+            </span>
+            <p class="is-size-5 has-text-grey">You haven't played any games yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .table td, .table th { color: #ddd; vertical-align: middle !important; }
+    .table-container { margin-top: 1rem; }
+    .table.is-striped tbody tr:not(.is-selected):nth-child(even) {
+        background-color: rgba(255, 255, 255, 0.02);
+    }
+</style>
+{% endblock %}

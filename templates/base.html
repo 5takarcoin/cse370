@@ -17,7 +17,6 @@
         .main-wrapper {
             flex: 1;
         }
-        /* Make navbar taller and more substantial */
         .navbar {
             min-height: 4.5rem; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -25,13 +24,11 @@
         .navbar-item img {
             max-height: 3rem;
         }
-        /* Shrink the footer padding */
         .footer {
             padding: 2rem 1.5rem 2rem; 
             background-color: #ffffff !important;
             border-top: 1px solid #e1e1e1;
         }
-        /* Add a subtle hover effect to boxes */
         .box {
             border-radius: 8px;
             transition: transform 0.2s;
@@ -54,31 +51,8 @@
            <section class="section">
             <div class="container">
                 <div class="columns is-variable is-5">
+                    {% include "partials/sidebar.html" %}
                     
-                    <div class="column is-3">
-                        <aside class="menu box">
-                            <p class="menu-label is-size-7">Main Dashboard</p>
-                            <ul class="menu-list">
-                                <li><a href="{{url_for('player_profile', username=session['username'])}}" 
-                                    class="{{ 'is-active' if request.path.startswith('/player') else '' }}"
-                                    ><i class="fas fa-id-badge mr-2"></i> My Profile</a></li>
-                                <li><a href="{{url_for('friends')}}"  class="{{ 'is-active' if request.path.startswith('/friends') else '' }}"><i class="fas fa-user-friends mr-2"></i> Friends</a></li>
-                            </ul>
-                            <p class="menu-label is-size-7">Economy</p>
-                            <ul class="menu-list">
-                                <li>
-                                    <a href="{{ url_for('bank') }}" class="{{ 'is-active' if request.path.startswith('/bank') else '' }}">
-                                        <i class="fas fa-vault mr-2"></i> Bank
-                                    </a>
-                                </li>
-                                <li><a href="{{ url_for('stocks') }}" class="{{ 'is-active' if request.path.startswith('/stocks') else '' }}"><i class="fas fa-chart-line mr-2"></i> Stock Exchange</a></li>
-                            </ul>
-                            <p class="menu-label is-size-7">Play</p>
-                            <ul class="menu-list">
-                                <li><a href="{{url_for('games.games_home')}}" class="{{ 'is-active' if request.path.startswith('/games') else '' }}"><i class="fas fa-dice mr-2"></i> Games</a></li>
-                            </ul>
-                        </aside>
-                    </div>
                     {% block content %}{% endblock %}
 
                     

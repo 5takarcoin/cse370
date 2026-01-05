@@ -284,8 +284,19 @@ def friends():
         cursor.execute(frq_query, (player_id,))
         frq = cursor.fetchall()
 
-    friends = [{'name': "Nancy", 'username': "Suziepoo"}]
-    
+    with conn.cursor() as cursor:
+        query = """
+            SELECT CONCAT(first_name, ' ', last_name) AS name, username
+            FROM players
+            WHERE player_id IN (
+                SELECT befriended_id FROM friendships WHERE befriender_id = %s
+                UNION
+                SELECT befriender_id FROM friendships WHERE befriended_id = %s
+            );
+        """
+        cursor.execute(query, (session['id'],session['id'],))
+        friends = cursor.fetchall()
+
     conn.close()
     return render_template("friends.html", friends=friends, frn=frn, frq=frq)
 
@@ -639,9 +650,18 @@ def transfer():
         validation_query = '''
         SELECT
             EXISTS (
-                SELECT 1 FROM players WHERE username = %s 
+                SELECT 1 FROM bank_accounts WHERE account_no = %s 
             ) AS ex
         '''
+
+        if sender_account == receiver_account:
+            flash("You cannot send money to yourself!")
+            return render_template(
+                'transfer.html',
+                account_no = account_no,
+                bank_balance = account_balance,
+                forminfo={"rec": amount, "memo": memo}
+                )
 
         with conn.cursor() as cursor:
             cursor.execute(validation_query, (receiver_account,))
@@ -649,7 +669,7 @@ def transfer():
             exists = bool(row['ex'])
 
         if not exists:
-            flash("Username not found!")
+            flash("Account not found!")
             return render_template(
                 'transfer.html',
                 account_no = account_no,
@@ -783,60 +803,10 @@ def stocks():
         invs = cursor.fetchall()
     
     submitting_data = request.method == "POST"
-    selling = submitting_data and 'sell' in request.form
-    buying = submitting_data and not selling
-
-    if selling:
-        stock_query = '''
-            SELECT s.abbreviation, i.investment_amount
-            FROM stocks s
-            INNER JOIN investments i ON i.stock_id = s.stock_id
-            INNER JOIN players p ON p.player_id = i.player_id
-            WHERE
-                i.stock_id=%s AND
-                i.player_id=%s AND
-                i.investment_date LIKE %s;
-        '''
-        deletion_query = '''
-            DELETE FROM investments
-            WHERE
-                stock_id=%s AND
-                player_id=%s AND
-                investment_date LIKE %s;
-        '''
-        update_query = '''
-            UPDATE players
-            SET personal_balance = personal_balance + %s
-            WHERE player_id=%s
-        '''
-        for s in request.form.getlist('sell'):
-            stock_id, purchase_date = s.split('|')
-            purchase_date = purchase_date + "%"
-            stock_id = int(stock_id)
-            player_id = player_id
-
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    stock_query,
-                    (stock_id, player_id, purchase_date)
-                )
-                row = cursor.fetchone()
-            abv = row['abbreviation']
-            rate = get_stock_rate(abv)
-            amount = row['investment_amount']
-            selling_price = rate * amount
-
-            
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    deletion_query,
-                    (stock_id, player_id, purchase_date)
-                )
-                cursor.execute(update_query, (selling_price, player_id))
-                conn.commit()
-        conn.close()
-        return redirect(url_for('stocks'))
-    elif buying:
+    buying = submitting_data and 'stock' in request.form
+    selling = submitting_data and not buying
+    
+    if buying:
         stock_id = request.form['stock']
         amount = float(request.form['amount'])
 
@@ -882,7 +852,63 @@ def stocks():
                 return redirect(url_for('stocks'))
         else:
             flash("You don't have enough money to do that!")
+    elif selling:
+        stock_query = '''
+            SELECT s.abbreviation, i.investment_amount
+            FROM stocks s
+            INNER JOIN investments i ON i.stock_id = s.stock_id
+            INNER JOIN players p ON p.player_id = i.player_id
+            WHERE
+                i.stock_id=%s AND
+                i.player_id=%s AND
+                i.investment_date LIKE %s;
+        '''
+        deletion_query = '''
+            DELETE FROM investments
+            WHERE
+                stock_id=%s AND
+                player_id=%s AND
+                investment_date LIKE %s;
+        '''
+        update_query = '''
+            UPDATE players
+            SET personal_balance = personal_balance + %s
+            WHERE player_id=%s
+        '''
+        
+        selected = request.form.getlist('sell')
+        if not selected:
+            flash("Please select at least one investment to sell!")
+            return redirect(url_for('stocks'))
+            
+        for s in selected:
+            stock_id, purchase_date = s.split('|')
+            purchase_date = purchase_date + "%"
+            stock_id = int(stock_id)
+            player_id = player_id
 
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    stock_query,
+                    (stock_id, player_id, purchase_date)
+                )
+                row = cursor.fetchone()
+            abv = row['abbreviation']
+            rate = get_stock_rate(abv)
+            amount = row['investment_amount']
+            selling_price = rate * amount
+
+            
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    deletion_query,
+                    (stock_id, player_id, purchase_date)
+                )
+                cursor.execute(update_query, (selling_price, player_id))
+                conn.commit()
+        conn.close()
+        return redirect(url_for('stocks'))
+    
     conn.close()
     return render_template('stocks.html', stocks=stocks, investments=invs)
     

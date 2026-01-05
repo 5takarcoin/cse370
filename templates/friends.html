@@ -8,26 +8,26 @@
                         <div class="columns">
                             <div class="column is-7">
                                 <div class="box">
-                                    <h3 class="title is-4">
-                                        <i class="fas fa-user-friends has-text-info mr-2"></i>Friends
-                                    </h3>
+                                    <h1 class="title is-2">
+                                        <i class="fas fa-user-friends has-text-info mr-3 mb-5"></i>Friends
+                                    </h1>
 
                                         {% if friends %}
                                             <div class="content">
                                                 {% for f in friends %}
-                                                    <div class="is-flex is-align-items-center mb-3">
+                                                <a href="{{url_for('player_profile', username=f['username'])}}" class="is-flex is-align-items-center">
                                                         <figure class="image is-32x32 mr-3">
                                                             <img class="is-rounded"
                                                                 src="https://ui-avatars.com/api/?name={{ f['name'] }}&background=random">
                                                         </figure>
 
                                                         <div>
-                                                            <a class="has-text-weight-bold">
+                                                            <p class="has-text-weight-bold mb-0">
                                                                 {{ f['name'] }}
-                                                            </a>
+                                                            </p>
                                                             <p class="is-size-7 has-text-grey">@{{ f['username'] }}</p>
                                                         </div>
-                                                    </div>
+                                                    </a>
                                                 {% endfor %}
                                             </div>
                                         {% else %}
@@ -92,25 +92,25 @@
                                     {% if frq %}
                                         <div class="content">
                                             {% for f in frq %}
-                                            <div class="request-item">
+                                            <a href="{{url_for('player_profile', username=f['username'])}}" class="request-item">
                                                 <div class="is-flex is-align-items-center">
                                                     <figure class="image is-32x32 mr-3">
                                                         <img class="is-rounded" src="https://ui-avatars.com/api/?name={{f['name']}}&background=random">
                                                     </figure>
                                                     <div>
-                                                        <a href="{{url_for('player_profile', username=f['username'])}}" class="has-text-weight-bold">
+                                                        <p class="has-text-weight-bold mb-0">
                                                             {{f['name']}}
-                                                        </a>
+                                                        </p>
                                                         <p class="is-size-7 has-text-grey">wants to be friends</p>
                                                     </div>
                                                 </div>
                                                 <form method="post" action="/friends"">
                                                     <input type="hidden" name="friend_id" value="{{ f['player_id'] }}">
-                                                    <button type="submit" class="button is-info is-small is-light has-text-weight-bold">
+                                                    <button type="submit" class="button mt-2 mb-4 is-info is-small is-light has-text-weight-bold">
                                                         ACCEPT
                                                     </button>
                                                 </form>
-                                            </div>
+                                            </a>
                                             {% endfor %}
                                         </div>
                                     {% else %}

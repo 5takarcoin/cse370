@@ -2,23 +2,35 @@
 
 {% block title %}Profile{% endblock %}
 
+{% block styles %}
+{{super()}}
+<style>
+    .diffcol {
+        background: linear-gradient(135deg, #003c47 0%, #00423d 100%);
+}
+</style>
+{% endblock %}
+
 
 {% block content %}
 
                     <div class="column is-9">
-                        <div class="box p-6">
+                            <!-- <div class="{{ 'box p-6 diffcol' if session['username'] != details['username'] else 'box p-6' }}"> -->
+                                <div class="box p-6 {% if session.get('username') != details.get('username') %}diffcol{% endif %}">
+
                             <div class="columns is-vcentered">
                                 <div class="column">
+                                    <p class="subtitle is-5 has-text-grey">Player Profile Details</p>
+
                                     <h1 class="title is-2 mb-2 ">
                                         <a class="has-text-white">
-                                            {{session['fname']}} {{session['lname']}}
+                                            {{details['name']}}
                                         </a>
                                     </h1>
-                                    <p class="subtitle is-5 has-text-grey">User Profile Details</p>
                                 </div>
                                 <div class="column is-narrow">
                                     <figure class="image is-96x96">
-                                        <img class="is-rounded" src="https://ui-avatars.com/api/?name={{session['fname']}}+{{session['lname']}}&size=128&background=48c78e&color=fff" alt="Profile">
+                                        <img class="is-rounded" src="https://ui-avatars.com/api/?name={{details['name']}}&size=128&background=48c78e&color=fff" alt="Profile">
                                     </figure>
                                 </div>
                             </div>
@@ -43,7 +55,7 @@
                     <li>
                         <strong>Name</strong>
                         <span class="is-pulled-right">
-                            {{ session['fname'] }} {{ session['lname'] }}
+                            {{ details['name'] }}
                         </span>
                     </li>
 
@@ -98,6 +110,7 @@
                                     <div class="">
                                         <div class="">
                                             {% for f in mutuals %}
+                                            <a href="{{ url_for('player_profile', username=f['username']) }}">
                                                     <div class="is-flex is-align-items-center mb-3">
                                                         <figure class="image is-32x32 mr-3">
                                                             <img class="is-rounded"
@@ -105,12 +118,12 @@
                                                         </figure>
 
                                                         <div>
-                                                            <a class="has-text-weight-bold">
+                                                            <p class="has-text-weight-bold mb-0">
                                                                 {{ f['name'] }}
-                                                            </a>
+                                                            </p>
                                                             <p class="is-size-7 has-text-grey">@{{ f['username'] }}</p>
                                                         </div>
-                                                    </div>
+                                                    </div></a>
                                             {% else %}
                                                 <div class="has-text-centered py-4">
                                                     <p class="has-text-grey-light italic">No mutual friends found</p>
