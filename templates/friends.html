@@ -18,6 +18,10 @@
                         <ul>
                         {% for f in frn %}
                             <li><a href="{{url_for('player_profile', username=f['username'])}}">{{f['name']}}</a></li>
+                            <form method="post">
+                                <input type="hidden" name="unfriend_id" value="{{ f['player_id'] }}">
+                                <button type="submit">Unfriend</button>
+                            </form>
                         {% endfor %}
                         </ul>
                     {% else %}
@@ -62,6 +66,10 @@
                                 <form method="post">
                                     <input type="hidden" name="friend_id" value="{{ f['player_id'] }}">
                                     <button type="submit">Accept</button>
+                                </form>
+                                <form method="post">
+                                    <input type="hidden" name="reject_id" value="{{ f['player_id'] }}">
+                                    <button type="submit">Decline</button>
                                 </form>
                             </li>
                             {% endfor %}

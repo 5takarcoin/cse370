@@ -14,7 +14,11 @@
             </a>
         </li>
         <li>Age: {{details['age']}}</li>
-        <li>Personal Balance: ${{details['personal_balance']}}</li>
+        <li>In Pocket: ${{details['personal_balance']}}</li>
+        <li>Bank Balance: ${{details['account_balance']}}</li>
+        {% if 'account_no' in details %}
+        <li>Bank Account Number: {{details['account_no']}}</li>
+        {% endif %}
     </ul>
     <h2>
         {% if details["username"] == session["username"] %}

@@ -62,3 +62,6 @@ if existing_req:
     else:
         cursor.execute(DELETE FROM friend_requests WHERE sender_id = %s AND receiver_id = %s, (them, me))
         cursor.execute(INSERT INTO friendships VALUES (%s, %s), (them, me))
+
+-- <a href="{{ url_for('home') }}">Back to home</a>
+-- <a href="{{ url_for('bank') }}">Back to bank</a>
