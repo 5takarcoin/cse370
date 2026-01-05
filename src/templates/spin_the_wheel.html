@@ -49,6 +49,15 @@
 
                         <div id="result" class="is-size-3 has-text-weight-bold has-text-primary" style="min-height: 3.5rem;"></div>
 
+                        <div class="mt-4">
+    <button id="end-session" class="button is-warning is-medium is-fullwidth has-text-weight-bold">
+        <span class="icon">
+            <i class="fas fa-sign-out-alt"></i>
+        </span>
+        <span>End Session</span>
+    </button>
+</div>
+
                         <!-- Hidden form to send score to backend -->
                         <form id="save-form" method="POST" action="/games/save_score">
                             <input type="hidden" name="session_id" value="{{ session_id }}">

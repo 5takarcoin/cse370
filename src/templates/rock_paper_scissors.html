@@ -7,38 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('games.static', filename='css/rps.css') }}">
-    <style>
-        body {
-            display: flex;
-            min-height: 100vh;
-            flex-direction: column;
-            background-color: #f4f7f6;
-        }
-        .main-wrapper { flex: 1; }
-        .navbar { min-height: 4.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .footer { padding: 2rem 1.5rem; background-color: #ffffff !important; border-top: 1px solid #e1e1e1; }
-        .box { border-radius: 8px; }
-        .menu-list a { padding: 0.75rem 1rem; }
-        
-        /* Game Specific Styling */
-        .game-area {
-            background-color: #ffffff;
-            min-height: 450px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .rps-btn {
-            min-width: 140px;
-            height: 100px !important;
-            font-size: 1.5rem !important;
-            transition: transform 0.2s;
-        }
-        .rps-btn:hover {
-            transform: scale(1.05);
-        }
-    </style>
+
 </head>
 <body>
 
@@ -52,33 +21,64 @@
                     {% include "partials/sidebar.html" %}
 
                     <div class="column is-9">
-                        <div class="box game-area has-text-centered p-6">
-                            <h1 class="title is-2 mb-2">Rock Paper Scissors</h1>
-                            <p class="subtitle is-6 has-text-grey mb-6">Choose your move to win the pot!</p>
+    <div class="box game-area has-text-centered p-6">
+        <div class="mb-4">
+        <span class="tag is-dark is-medium">Session: {{ session_id }}</span>
+        <span class="tag is-success is-medium ml-2" id="score">Score: 0</span>
+        <span class="tag is-info is-medium ml-2" id="balance">Balance: ${{ accbalance }}</span>
+    </div>
 
-                            <div class="buttons is-centered mb-6">
-                                <button class="button is-large rps-btn is-warning is-light" data-choice="rock">
-                                    <span class="is-size-1">✊</span><br>Rock
-                                </button>
-                                <button class="button is-large rps-btn is-info is-light" data-choice="paper">
-                                    <span class="is-size-1">✋</span><br>Paper
-                                </button>
-                                <button class="button is-large rps-btn is-danger is-light" data-choice="scissors">
-                                    <span class="is-size-1">✌️</span><br>Scissors
-                                </button>
-                            </div>
+        <h1 class="title is-2 mb-2">Rock Paper Scissors</h1>
 
-                            <div id="result" class="is-size-3 has-text-weight-bold has-text-success" style="height: 3rem;"></div>
-                            <div id="score" class="mt-4 tag is-dark is-large">Score: 0</div>
-                        </div>
+        <!-- Multiplier slider -->
+        <div class="mb-4">
+            <label for="multiplier" class="has-text-weight-bold flex black-text">Multiplier X 
+                <span id="multiplier-text">100</span>
+            </label>
+            <input type="range" id="multiplier" min="10" max="500" step="10" value="100">
+        </div>
 
-                        <div class="mt-4">
-                            <a class="button is-info is-light is-fullwidth" href="/games/rock_paper_scissors/leaderboard">
-                                <span class="icon"><i class="fas fa-trophy"></i></span>
-                                <span>View Rock Paper Scissors Leaderboard</span>
-                            </a>
-                        </div>
-                    </div>
+        <div class="buttons is-centered mb-6">
+            <button class="button is-large rps-btn is-warning is-light" data-choice="rock">
+                <span class="is-size-1">✊</span><br>Rock
+            </button>
+            <button class="button is-large rps-btn is-info is-light" data-choice="paper">
+                <span class="is-size-1">✋</span><br>Paper
+            </button>
+            <button class="button is-large rps-btn is-danger is-light" data-choice="scissors">
+                <span class="is-size-1">✌️</span><br>Scissors
+            </button>
+        </div>
+
+        <div id="result" class="is-size-3 has-text-weight-bold has-text-success" style="height: 3rem;"></div>
+
+        <!-- End session button -->
+         <div class="mt-4">
+    <button id="end-session" class="button is-warning is-medium is-fullwidth has-text-weight-bold">
+        <span class="icon">
+            <i class="fas fa-sign-out-alt"></i>
+        </span>
+        <span>End Session</span>
+    </button>
+</div>
+
+        <!-- Hidden form to send score to backend -->
+        <form id="save-form" method="POST" action="/games/save_score">
+            <input type="hidden" name="session_id" value="{{ session_id }}">
+            <input type="hidden" name="game_id" value="1">
+            <input type="hidden" name="score" id="form-score" value="0">
+            <input type="hidden" name="balance" id="balance-to-send" value="0">
+        </form>
+    </div>
+
+    <div class="mt-4">
+        <a class="button is-info is-light is-fullwidth" href="/games/rock_paper_scissors/leaderboard">
+            <span class="icon"><i class="fas fa-trophy"></i></span>
+            <span>View Rock Paper Scissors Leaderboard</span>
+        </a>
+    </div>
+</div>
+
 
                 </div>
             </div>

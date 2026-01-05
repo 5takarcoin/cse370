@@ -14,24 +14,36 @@ def create_a_session_for_game(game_id):
 
     cursor.execute(
         """
-        SELECT MAX(session_no) AS max_session_no
+        SELECT session_no
         FROM game_sessions
-        WHERE game_id = %s AND player_id = %s
+        WHERE game_id = %s AND player_id = %s AND session_end_time IS NULL
         """,
         (game_id, player_id)
     )
+    active_session = cursor.fetchone()
 
-    row = cursor.fetchone()
-    next_session_no = (row["max_session_no"] or 0) + 1
+    if active_session:
+        next_session_no = active_session["session_no"]
+    else:
+        cursor.execute(
+            """
+            SELECT MAX(session_no) AS max_session_no
+            FROM game_sessions
+            WHERE game_id = %s AND player_id = %s
+            """,
+            (game_id, player_id)
+        )
+        row = cursor.fetchone()
+        next_session_no = (row["max_session_no"] or 0) + 1
 
-    cursor.execute(
-        """
-        INSERT INTO game_sessions
-        (game_id, player_id, session_no, score)
-        VALUES (%s, %s, %s, %s)
-        """,
-        (game_id, player_id, next_session_no, 0)
-    )
+        cursor.execute(
+            """
+            INSERT INTO game_sessions
+            (game_id, player_id, session_no, score)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (game_id, player_id, next_session_no, 0)
+        )
 
     query = "SELECT personal_balance FROM players WHERE player_id = %s;"
 

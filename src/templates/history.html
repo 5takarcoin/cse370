@@ -29,7 +29,7 @@
                         <!-- <th>Player</th> -->
                         <th>Game</th>
                         <th class="has-text-centered">Score</th>
-                        <th class="has-text-centered">End Time</th>
+                        <th class="has-text-centered">Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -72,17 +72,17 @@
                         </td>
            
 
-                        <td class="has-text-centered">
+                        <td class="has-text-centered is-size-7">
                             {% if s['session_end_time'] %}
+                            <span class="has-text-weight-bold">Ended</span>
                                 <span class="has-text-weight-semibold">
                                     {{ s['session_start_time'].strftime('%b %d, %Y') }}
-                                </span>
-                                <br>
+                                </span><br/>
                                 <span class="has-text-grey">
                                     {{ s['session_start_time'].strftime('%I:%M %p') }}
                                 </span>
                             {% else %}
-                                <span class="is-warning is-light">N/A</span>
+                                <span class="tag is-warning is-light">Active</span>
                             {% endif %}
                         </td>
                     </tr>

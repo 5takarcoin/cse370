@@ -9,6 +9,7 @@ const formScore = document.getElementById('form-score');
 const saveForm = document.getElementById('save-form');
 const balanceToSend = document.getElementById('balance-to-send');
 const spinBtn = document.getElementById("spinBtn");
+const endsession = document.getElementById("end-session");
 
 let score = 0;
 let balance = parseFloat(balanceEl.textContent.replace('Balance: $',''));
@@ -98,10 +99,12 @@ function showResult() {
     balanceToSend.value = balance;
 
     if(balance <= 0) {
-            saveForm.submit();
-        }
+        saveForm.submit();
+    }
 }
 
-window.addEventListener("beforeunload", function (e){
+endsession.addEventListener("click", () => {
+    balanceToSend.value = balance;
+    formScore.value = score;
     saveForm.submit();
 });

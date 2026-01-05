@@ -9,6 +9,7 @@ const multiplierText = document.getElementById('multiplier-text');
 const formScore = document.getElementById('form-score');
 const saveForm = document.getElementById('save-form');
 const balanceToSend = document.getElementById('balance-to-send');
+const endsession = document.getElementById("end-session");
 
 let score = 0;
 let balance = parseFloat(balanceEl.textContent.replace('Balance: $',''));
@@ -47,9 +48,9 @@ function flipCoin(playerPick) {
         balanceEl.textContent = `Balance: $${balance}`;
         scoreEl.textContent = `Score: ${score}`;
         formScore.value = score;
+        balanceToSend.value = balance
 
         if(balance <= 0) {
-            balanceToSend.value = balance
             saveForm.submit();
         }
     }, 1000);
@@ -58,6 +59,8 @@ function flipCoin(playerPick) {
 btnHeads.addEventListener('click', () => flipCoin('Heads'));
 btnTails.addEventListener('click', () => flipCoin('Tails'));
 
-window.addEventListener("beforeunload", function (e) {
+endsession.addEventListener("click", () => {
+    balanceToSend.value = balance;
+    formScore.value = score;
     saveForm.submit();
 });
