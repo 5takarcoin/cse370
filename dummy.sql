@@ -6,41 +6,36 @@ VALUES
 ('Charlie', 'Islam', 'charlie_i', 'charlie@example.com', 'hashed_pw_3', '2001-01-15', 200.00);
 INSERT INTO friend_requests (sender_id, receiver_id)
 VALUES
-(1, 2),
-(2, 3);
+(2, 3),
+(3, 4);
 INSERT INTO friendships (befriender_id, befriended_id)
 VALUES
-(1, 3);
+(2, 4);
 INSERT INTO game_sessions 
 (game_id, player_id, session_no, session_start_time, session_end_time, score)
 VALUES
-(1, 1, 1, '2025-01-01 10:00:00', '2025-01-01 10:30:00', 1200),
-(1, 1, 2, '2025-01-02 11:00:00', '2025-01-02 11:45:00', 1500),
-(2, 2, 1, '2025-01-03 09:00:00', '2025-01-03 09:20:00', 1),
-(3, 3, 1, '2025-01-04 18:00:00', NULL, 3);
+(1, 2, 1, '2025-01-01 10:00:00', '2025-01-01 10:30:00', 1200),
+(1, 2, 2, '2025-01-02 11:00:00', '2025-01-02 11:45:00', 1500),
+(2, 3, 1, '2025-01-03 09:00:00', '2025-01-03 09:20:00', 1),
+(3, 4, 1, '2025-01-04 18:00:00', NULL, 3);
 INSERT INTO bank_accounts (account_no, account_type, account_balance)
 VALUES
-('MONEYGAME-LIME-00001', 'Lime', 1000.00),
-('MONEYGAME-BLUE-00002', 'Blue', 800.00),
-('MONEYGAME-PINK-00003', 'Pink', 1200.00);
+('MONEYGAME-LIME-00002', 'Lime', 1000.00),
+('MONEYGAME-BLUE-00003', 'Blue', 800.00),
+('MONEYGAME-PINK-00004', 'Pink', 1200.00);
 INSERT INTO ownership (player_id, account_no)
 VALUES
-(1, 'MONEYGAME-LIME-00001'),
-(2, 'MONEYGAME-BLUE-00002'),
-(3, 'MONEYGAME-PINK-00003');
+(2, 'MONEYGAME-LIME-00002'),
+(3, 'MONEYGAME-BLUE-00003'),
+(4, 'MONEYGAME-PINK-00004');
 INSERT INTO transactions 
 (sender_account, receiver_account, memo, transaction_amount)
 VALUES
-('MONEYGAME-LIME-00001', 'MONEYGAME-BLUE-00002', 'Gift', 150.00),
-('MONEYGAME-BLUE-00002', 'MONEYGAME-PINK-00003', 'Bribe', 200.00);
-INSERT INTO stocks (abbreviation, exchange)
-VALUES
-('SIN', 'TRIG'),
-('COS', 'TRIG'),
-('TAN', 'TRIG');
+('MONEYGAME-LIME-00002', 'MONEYGAME-BLUE-00003', 'Gift', 150.00),
+('MONEYGAME-BLUE-00003', 'MONEYGAME-PINK-00004', 'Bribe', 200.00);
 INSERT INTO investments 
 (player_id, stock_id, investment_amount)
 VALUES
-(1, 1, 10),
-(2, 2, 5),
-(3, 3, 8);
+(2, 1, 10),
+(3, 2, 5),
+(4, 3, 8);
