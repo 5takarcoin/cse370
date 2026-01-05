@@ -97,8 +97,12 @@ function showResult() {
     scoreEl.textContent = `Score: ${score}`;
     formScore.value = score;
     balanceToSend.value = balance;
+ 
+    multiplierSlider.max = balance
+    multiplierSlider.value = Math.round(balance/2)
+    multiplierText.textContent = multiplierSlider.value
 
-    if(balance <= 0) {
+    if(balance < 10) {
         saveForm.submit();
     }
 }

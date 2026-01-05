@@ -96,9 +96,9 @@ def games_home():
 @games.route("/play/<game_name>")
 def play_game(game_name):
     session_id, balance, game_id = start_game(game_name)
-    if balance == 0:
-        flash("You are out of money :(")
-        return redirect(url_for('games'))
+    if balance < 10:
+        flash("You don't have enough money to enter") # FLASHED MESSAGES DON'T SHOW IN GAMES PAGE!!!
+        return redirect(url_for('games.games_home'))
     template = game_name + '.html'
     return render_template(template, session_id=session_id, balance=balance, game_id=game_id)
 
@@ -264,8 +264,8 @@ def save_score():
 
     cursor.close()
     conn.close()
-    if balance == 0:
-        flash("You are out of money :(", "danger")
+    if balance < 10:
+        flash("You need more money to keep playing :(", "danger")
     else:
         flash("Game session saved successfully!", "success")
     return redirect(url_for('games.games_home'))

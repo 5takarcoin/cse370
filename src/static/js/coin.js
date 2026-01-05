@@ -50,7 +50,11 @@ function flipCoin(playerPick) {
         formScore.value = score;
         balanceToSend.value = balance
 
-        if(balance <= 0) {
+        multiplierSlider.max = balance
+        multiplierSlider.value = Math.round(balance/2)
+        multiplierText.textContent = multiplierSlider.value
+
+        if(balance < 10) {
             saveForm.submit();
         }
     }, 1000);
