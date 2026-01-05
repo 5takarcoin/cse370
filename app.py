@@ -138,12 +138,7 @@ def friends():
     accepting_frq = submitting_data and 'friend_id' in request.form
     declining_frq = submitting_data and 'reject_id' in request.form
     unfriending_frn = submitting_data and 'unfriend_id' in request.form
-    sending_frq = (
-        submitting_data
-        and not accepting_frq
-        and not declining_frq
-        and not unfriending_frn
-    )
+    sending_frq = submitting_data and 'username' in request.form
 
     if accepting_frq:
         insertion_query = '''
