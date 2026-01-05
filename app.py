@@ -4,6 +4,7 @@ from flask import session, flash, get_flashed_messages
 from flask import render_template
 from datetime import date, datetime
 import math
+import bcrypt
 
 from src.games import games
 
@@ -73,7 +74,11 @@ def login():
 
         conn.close()
 
+        # entered_bytes = password.encode('utf-8')
+        # passbool = bcrypt.checkpw(entered_bytes, player['password'])
+
         if player and player['password'] == password:
+        # if player and passbool:
             session['id'] = player['player_id']
             session['username'] = player['username']
             session['fname'] = player['first_name']
@@ -99,6 +104,11 @@ def signup():
         email = request.form['email']
         dob = request.form['dob']
         password = request.form['password']
+
+        # password_bytes = password.encode('utf-8')
+        # salt = bcrypt.gensalt()
+        # hashed = bcrypt.hashpw(password_bytes, salt)
+        hashed = password
 
         valid = True
 
@@ -140,7 +150,7 @@ def signup():
             with conn.cursor() as cursor:
                 cursor.execute(
                     insertion_query,
-                    (fname, lname, uname, email, dob, password)
+                    (fname, lname, uname, email, dob, hashed)
                 )
                 conn.commit()
                 conn.close()

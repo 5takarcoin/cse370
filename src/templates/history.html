@@ -25,10 +25,11 @@
                 <thead>
                     <tr>
                         <th class="has-text-centered">#</th>
-                        <th>Date</th>
+                        <th>Start Time</th>
                         <!-- <th>Player</th> -->
                         <th>Game</th>
                         <th class="has-text-centered">Score</th>
+                        <th class="has-text-centered">End Time</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -69,16 +70,21 @@
                         <td class="has-text-centered has-text-weight-bold has-text-success">
                             {{ "{:,}".format(s['score']) }}
                         </td>
+           
 
-                        <!-- <td class="has-text-centered">
+                        <td class="has-text-centered">
                             {% if s['session_end_time'] %}
-                                <span class="icon has-text-grey-light" title="Finished">
-                                    <i class="fas fa-check-circle"></i>
+                                <span class="has-text-weight-semibold">
+                                    {{ s['session_start_time'].strftime('%b %d, %Y') }}
+                                </span>
+                                <br>
+                                <span class="has-text-grey">
+                                    {{ s['session_start_time'].strftime('%I:%M %p') }}
                                 </span>
                             {% else %}
-                                <span class="tag is-warning is-light">Active</span>
+                                <span class="is-warning is-light">N/A</span>
                             {% endif %}
-                        </td> -->
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

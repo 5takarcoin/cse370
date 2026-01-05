@@ -11,11 +11,11 @@ VALUES
 INSERT INTO friendships (befriender_id, befriended_id)
 VALUES
 (1, 3);
-INSERT INTO games (game_name)
+INSERT INTO games (game_id, game_name)
 VALUES
-('Coin Toss');
-('Spin The Wheel'),
-('Rock Paper Scissors');
+(0, 'Coin Toss');
+(1, 'Rock Paper Scissors');
+(2, 'Spin The Wheel'),
 INSERT INTO game_genres (game_id, game_genre)
 VALUES
 (0, 'Luck'),

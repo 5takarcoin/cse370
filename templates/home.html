@@ -21,17 +21,18 @@
             </div>
             
             <hr>
-
             <div class="columns">
-                <div>
                     {% if get_flashed_messages() %}
-                    <div class="notification is-warning mt-4" style="color: #111;">
+                    <div class="notification is-warning mt-4 column" style="color: #111;">
                         {% for m in get_flashed_messages() %}
                             <p>{{ m }}</p>
                         {% endfor %}
                     </div>
                     {% endif %}
                 </div>
+
+            <div class="columns">
+                
                 <div class="column">
                     <div class="has-background-success-light p-5 has-radius-normal">
                         <p class="heading has-text-success-dark">Personal Balance</p>

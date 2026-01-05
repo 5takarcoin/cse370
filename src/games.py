@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, session, redirect
+from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from db import get_db_connection
 
 games = Blueprint("games", __name__, static_folder="static", template_folder="templates")
@@ -31,6 +31,7 @@ def create_a_session_for_game(game_id):
         VALUES (%s, %s, %s, %s)
         """,
         (game_id, player_id, next_session_no, 0)
+    )
 
     query = "SELECT personal_balance FROM players WHERE player_id = %s;"
 
@@ -44,7 +45,7 @@ def create_a_session_for_game(game_id):
     cursor.close()
     conn.close()
 
-    return next_session_no, accbalance
+    return next_session_no, balance
 
 
 @games.route("/", methods=['GET'])
@@ -81,19 +82,28 @@ def games_home():
 @games.route("/coin_toss")
 def coin_toss():
     session_id, accbalance = create_a_session_for_game(0)
+    if accbalance < 0:
+        flash("You are out of money :(")
+        return redirect(url_for('home'))
     return render_template("coin_toss.html", session_id=session_id, accbalance=accbalance)
 
 
 @games.route("/rock_paper_scissors")
 def rock_paper_scissors():
-    session_id = create_a_session_for_game(1)
-    return render_template("rock_paper_scissors.html", session_id=session_id)
+    session_id, accbalance = create_a_session_for_game(1)
+    if accbalance < 0:
+        flash("You are out of money :(")
+        return redirect(url_for('home'))
+    return render_template("rock_paper_scissors.html", session_id=session_id, accbalance=accbalance)
 
 
 @games.route("/spin_the_wheel")
 def spin_the_wheel():
-    session_id = create_a_session_for_game(2)
-    return render_template("spin_the_wheel.html", session_id=session_id)
+    session_id, accbalance = create_a_session_for_game(2)
+    if accbalance < 0:
+        flash("You are out of money :(")
+        return redirect(url_for('home'))
+    return render_template("spin_the_wheel.html", session_id=session_id, accbalance=accbalance)
 
 
 
@@ -218,7 +228,8 @@ def history(player):
     FROM game_sessions gs
     JOIN games g ON gs.game_id = g.game_id
     JOIN players p ON gs.player_id = p.player_id
-    WHERE gs.player_id = %s;
+    WHERE gs.player_id = %s
+    ORDER BY gs.session_start_time DESC;
     '''
 
     cursor.execute(query, (session['id'],))
@@ -228,3 +239,38 @@ def history(player):
     conn.close()
 
     return render_template("history.html", sessions=sessions)
+
+@games.route("/save_score", methods=["POST"])
+def save_coin_score():
+    session_no = int(request.form['session_id'])
+    score = int(request.form['score'])
+    game_id = int(request.form['game_id'])
+    player_id = session['id']  
+
+    balance = float(request.form['balance'])
+
+    print("balance")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    update_query = '''
+        UPDATE game_sessions
+        SET session_end_time = NOW(), score = %s
+        WHERE game_id = %s AND player_id = %s AND session_no = %s
+    '''
+
+    balance_query = "UPDATE players SET personal_balance = %s WHERE player_id = %s"
+    cursor.execute(balance_query, (balance, player_id))
+    conn.commit()
+
+    cursor.execute(update_query, (score, game_id, player_id, session_no))
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+    if balance < 0:
+        flash("You are out of money :(", "danger")
+    else:
+        flash("Game session saved successfully!", "success")
+    return redirect(url_for('home'))
