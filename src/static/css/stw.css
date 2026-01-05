@@ -1,17 +1,26 @@
-/* stw.css - Cleaned Version */
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    background-color: #f4f7f6;
+}
+.main-wrapper { flex: 1; }
+.navbar { min-height: 4.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.footer { padding: 2rem 1.5rem; background-color: #ffffff !important; border-top: 1px solid #e1e1e1; }
+.box { border-radius: 8px; }
 
-canvas {
-    background: #222;
-    border-radius: 50%;
-    /* margin: 20px 0; Removed to let Bulma handle spacing */
-    display: block;
+.game-container {
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .wheel-wrapper {
     position: relative;
     display: inline-block;
 }
-
+canvas { background: #222; border-radius: 50%; display: block; }
 .pointer {
     position: absolute;
     top: 50%;
@@ -21,12 +30,9 @@ canvas {
     height: 0;
     border-top: 12px solid transparent;
     border-bottom: 12px solid transparent;
-    border-right: 20px solid red; /* points LEFT */
+    border-right: 20px solid red;
     z-index: 10;
 }
 
-/* We keep the spin button hover effect if you want it, 
-   but Bulma classes usually handle this now */
-#spinBtn:hover {
-    filter: brightness(1.1);
-}
+.black-text { color: #333; }
+.flex { display: flex; justify-content: center; }

@@ -7,28 +7,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('games.static', filename='css/stw.css') }}">
-    <style>
-        body {
-            display: flex;
-            min-height: 100vh;
-            flex-direction: column;
-            background-color: #f4f7f6;
-            margin: 0; /* Ensures no browser default margins */
-        }
-        .main-wrapper { flex: 1; }
-        .navbar { min-height: 4.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .box { border-radius: 8px; }
-        
-        /* Dashboard specific fix */
-        .game-container {
-            background-color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem 1.5rem;
-        }
-    </style>
 </head>
 <body>
 
@@ -41,24 +19,45 @@
                     
                     {% include "partials/sidebar.html" %}
 
-                    <div class="column is-9">
-                        <div class="box game-container has-text-centered">
-                            <h1 class="title is-2 mb-2">🎡 Spin the Wheel</h1>
-                            <p class="subtitle is-6 has-text-grey mb-5">Try your luck!</p>
-
-                            <div class="wheel-wrapper">
-                                <div class="pointer"></div>
-                                <canvas id="wheel" width="400" height="400"></canvas>
-                            </div>
-
-                            <div class="mt-5">
-                                <button id="spinBtn" class="button is-success is-large is-rounded px-6">
-                                    <strong>SPIN</strong>
-                                </button>
-                            </div>
-
-                            <div id="result" class="mt-4 is-size-3 has-text-weight-bold has-text-primary" style="min-height: 3.5rem;"></div>
+                     <div class="column is-9">
+                    <div class="box game-container has-text-centered p-6">
+                        <div class="mb-4">
+                            <span class="tag is-dark is-medium">Session: {{ session_id }}</span>
+                            <span class="tag is-success is-medium ml-2" id="score">Score: 0</span>
+                            <span class="tag is-info is-medium ml-2" id="balance">Balance: ${{ accbalance }}</span>
                         </div>
+
+                        <!-- Multiplier slider -->
+                        <div class="mb-4">
+                            <label for="multiplier" class="has-text-weight-bold flex black-text">
+                                Multiplier X <span id="multiplier-text">100</span>
+                            </label>
+                            <input type="range" id="multiplier" min="10" max="500" step="10" value="100">
+                        </div>
+
+                        <h1 class="title is-2 mb-2">🎡 Spin the Wheel</h1>
+                        <p class="subtitle is-6 has-text-grey mb-5">Try your luck!</p>
+
+                        <div class="wheel-wrapper mb-5">
+                            <div class="pointer"></div>
+                            <canvas id="wheel" width="400" height="400"></canvas>
+                        </div>
+
+                        <button id="spinBtn" class="button is-success is-large is-rounded px-6 mb-4">
+                            <strong>SPIN</strong>
+                        </button>
+
+                        <div id="result" class="is-size-3 has-text-weight-bold has-text-primary" style="min-height: 3.5rem;"></div>
+
+                        <!-- Hidden form to send score to backend -->
+                        <form id="save-form" method="POST" action="/games/save_score">
+                            <input type="hidden" name="session_id" value="{{ session_id }}">
+                            <input type="hidden" name="game_id" value=2>
+                            <input type="hidden" name="score" id="form-score" value="0">
+                            <input type="hidden" name="balance" id="balance-to-send" value="0">
+                        </form>
+
+                    </div>
 
                         <div class="mt-4">
                             <a class="button is-info is-light is-fullwidth" href="/games/spin_the_wheel/leaderboard">
@@ -75,6 +74,6 @@
 
     {% include "partials/footer.html" %}
 
-    <script src="{{ url_for('games.static', filename='js/stw.js') }}"></script>
+    <script defer src="{{ url_for('games.static', filename='js/stw.js') }}"></script>
 </body>
 </html>
