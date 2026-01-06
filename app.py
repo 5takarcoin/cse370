@@ -367,7 +367,7 @@ def player_profile(username):
         ) as is_friend;
     '''
     bank_query = '''
-    SELECT SUM(b.account_balance) AS total_balance
+    SELECT SUM(b.account_balance) AS total_balance, b.account_no
     FROM ownership o
     JOIN bank_accounts b ON o.account_no = b.account_no
     WHERE o.player_id = %s;
@@ -437,7 +437,7 @@ def player_profile(username):
             cursor.execute(bank_query, (target,))
             row = cursor.fetchone()
             bank_balance = ('$'+str(row['total_balance'])) if row['total_balance'] is not None else "N/A"
-
+            bank_account = row['account_no'] if row['account_no'] is not None else "N/A"
             cursor.execute(fav_game_query, (target,))
             rows = cursor.fetchall()
 
@@ -448,7 +448,8 @@ def player_profile(username):
 
         moredet = {
             "bank_balance": bank_balance,
-            "fav_game": fav_game
+            "fav_game": fav_game,
+            "bank_account": bank_account
         }
     else:
         conn.close()
@@ -459,7 +460,8 @@ def player_profile(username):
         'player_profile.html',
         details=profile_details,
         mutuals=mutuals,
-        more_details=moredet
+        more_details=moredet,
+        is_friend=is_friend
         )
 
 @app.route('/bank/')

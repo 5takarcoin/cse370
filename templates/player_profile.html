@@ -76,12 +76,23 @@
                         </span>
                     </li>
 
+                    {% if is_friend %}
+                    <li>
+                        <strong>Bank Account</strong>
+                        <span class="is-pulled-right has-text-info has-text-weight-bold">
+                            {{ more_details['bank_account'] }}
+                        </span>
+                    </li>
+                    {% endif %}
+
+                    {% if session['username'] == details['username'] %}
                     <li>
                         <strong>Bank Balance</strong>
                         <span class="is-pulled-right has-text-info has-text-weight-bold">
                             {{ more_details['bank_balance'] }}
                         </span>
                     </li>
+                    {% endif %}
 
                     <li>
                         <strong>Favourite Game</strong>
