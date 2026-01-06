@@ -27,6 +27,9 @@
                                             {{details['name']}}
                                         </a>
                                     </h1>
+                                    {% if session['username'] == details['username'] %}
+                                    <a href="{{ url_for('edit_profile') }}">Edit Profile</a>
+                                    {% endif %}
                                 </div>
                                 <div class="column is-narrow">
                                     <figure class="image is-96x96">
@@ -87,13 +90,13 @@
                         </span>
                     </li>
 
-                    {% if friends %}
+                    {% if mutuals %}
                     <li>
-                        <strong>Best Friend</strong>
+                        <strong>Richest mutual</strong>
                         <span class="is-pulled-right">
-                            <a href="{{ url_for('player_profile', username=friends[0]['username']) }}"
+                            <a href="{{ url_for('player_profile', username=mutuals[0]['username']) }}"
                                class="has-text-link has-text-weight-semibold">
-                                {{ friends[0]['name'] }}
+                                {{ mutuals[0]['name'] }}
                             </a>
                         </span>
                     </li>
@@ -106,7 +109,13 @@
 
 
                                 <div class="column is-5" style="border-left: 2px solid #ffffff11; padding-left:16px; margin-left: 16px;">
-                                    <h3 class="title is-4 has-text-weight-bold" >Mutual Friends</h3>
+                                    <h3 class="title is-4 has-text-weight-bold" >
+                                        {% if session['username'] != details['username'] %}
+                                        Mutual Friends
+                                        {% else %}
+                                        Friends
+                                        {% endif %}
+                                    </h3>
                                     <div class="">
                                         <div class="">
                                             {% for f in mutuals %}
@@ -126,7 +135,7 @@
                                                     </div></a>
                                             {% else %}
                                                 <div class="has-text-centered py-4">
-                                                    <p class="has-text-grey-light italic">No mutual friends found</p>
+                                                    <p class="has-text-grey-light italic">No {% if session['username'] != details['username'] %}mutual {% endif %} friends found</p>
 
                                                     <div class="mt-4"></div>
 

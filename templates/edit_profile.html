@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Edit profile{% endblock %}
+
+{% block content %}
+<div class="column is-9">
+    <div class="box p-6">
+        <h1 class="title is-2 mb-5"><i class="fas fa-id-card has-text-success mr-3"></i>Edit Profile</h1>
+
+        <div class="box p-5 mb-6" style="border: 1px solid #ddd;">
+            <h2 class="subtitle is-4 mb-4 has-text-weight-bold">Your Present Details</h2>
+            <ul class="content">
+                <li><strong>First Name:</strong> {{ session['fname'] }}</li>
+                <li><strong>Last Name:</strong> {{ session['lname'] }}</li>
+                <li><strong>Username:</strong> {{ session['username'] }}</li>
+                <li><strong>Email:</strong> {{ session['email'] }}</li>
+            </ul>
+        </div>
+
+    
+
+        <div class="box p-5" style="border: 1px solid #ddd; color: #111;">
+            <h2 class="subtitle is-4 mb-4 has-text-weight-bold">New details</h2>
+            <form method="post">
+                <div class="field is-grouped">
+    
+                    <div class="field mb-4">
+                        <label class="label" for="fname">First Name</label>
+                        <div class="control">
+                            <input class="input" type="text" name="fname" placeholder="Firstname">
+                        </div>
+                    </div>
+        
+                    <div class="field mb-4">
+                        <label class="label" for="lname">Last Name</label>
+                        <div class="control">
+                            <input class="input" type="text" name="lname" placeholder="Lastname">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field mb-4">
+                    <label class="label" for="username">Username</label>
+                    <div class="control">
+                        <input class="input" type="text" name="username" placeholder="user123">
+                    </div>
+                </div>
+
+                <div class="field mb-4">
+                    <label class="label" for="email">Email</label>
+                    <div class="control">
+                        <input class="input" type="email" name="email" placeholder="example@example.com">
+                    </div>
+                </div>
+
+                <div class="field mb-4">
+                    <label class="label" for="new_password">Password (New)</label>
+                    <div class="control">
+                        <input class="input" type="password" name="new_password" placeholder="*******">
+                    </div>
+                </div>
+
+                <div class="field mb-4">
+                    <label class="label" for="old_password">Password (Old)</label>
+                    <div class="control">
+                        <input class="input" type="password" name="old_password" placeholder="*******" required>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="control">
+                        <button class="button is-success">Submit</button>
+                    </div>
+                </div>
+                    {% for type, message in get_flashed_messages(with_categories=true) %}
+                            <div class="message is-{{ type }}">
+                                <div class="message-body">
+                                {{ message }}
+                                </div>
+                            </div>
+                    {% endfor %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

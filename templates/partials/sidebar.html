@@ -8,7 +8,7 @@
         <p class="menu-label is-size-7">Main Dashboard</p>
         <ul class="menu-list">
             <li><a href="{{url_for('player_profile', username=session['username'])}}" 
-                class="{{ 'is-active' if request.path.startswith('/player') else '' }}"
+                class="{{ 'is-active' if request.path.startswith('/player'+'/'+session['username'])else '' }}"
                 ><i class="fas fa-id-badge mr-2"></i> My Profile</a></li>
             <li><a href="{{url_for('friends')}}"  class="{{ 'is-active' if request.path.startswith('/friends') else '' }}"><i class="fas fa-user-friends mr-2"></i> Friends</a></li>
         </ul>

@@ -5,6 +5,13 @@
 {% block content %}
 
                     <div class="column is-9">
+                    {% for type, message in get_flashed_messages(with_categories=true) %}
+                            <div class="message is-{{ type }}">
+                                <div class="message-body">
+                                {{ message }}
+                                </div>
+                            </div>
+                    {% endfor %}
                         <div class="columns">
                             <div class="column is-7">
                                 <div class="box">
@@ -12,9 +19,9 @@
                                         <i class="fas fa-user-friends has-text-info mr-3 mb-5"></i>Friends
                                     </h1>
 
-                                        {% if friends %}
+                                        {% if frn %}
                                             <div class="content">
-                                                {% for f in friends %}
+                                                {% for f in frn %}
                                                 <a href="{{url_for('player_profile', username=f['username'])}}" class="is-flex is-align-items-center">
                                                         <figure class="image is-32x32 mr-3">
                                                             <img class="is-rounded"
@@ -27,16 +34,17 @@
                                                             </p>
                                                             <p class="is-size-7 has-text-grey">@{{ f['username'] }}</p>
                                                         </div>
-                                                    </a>
+                                                </a>
+                                                <form method="post" action="{{ url_for('friends') }}">
+                                                    <input type="hidden" name="unfriend_id" value="{{ f['player_id'] }}">
+                                                    <button type="submit" class="button mt-2 mb-4 is-info is-small is-light has-text-weight-bold">
+                                                        Unfriend
+                                                    </button>
+                                                </form>
                                                 {% endfor %}
                                             </div>
                                         {% else %}
-                                            <div class="has-text-centered py-5">
-                                                <span class="icon is-large has-text-grey-lighter">
-                                                    <i class="fas fa-user-slash fa-2x"></i>
-                                                </span>
-                                                <p class="has-text-grey mt-2">No friends yet.</p>
-                                            </div>
+                                            <img class="container" src="{{ url_for('static', filename='friendless.gif') }}">
                                         {% endif %}
                                     </div>
 
@@ -45,7 +53,7 @@
                             <div class="column is-5">
                                 <div class="box">
                                     <h3 class="title is-4"><i class="fas fa-user-plus has-text-success mr-2"></i> Add Friend</h3>
-                                    <form method="POST" action="/friends">
+                                    <form method="POST" action="{{ url_for('friends') }}">
                                         <div class="field">
                                             <label class="label">Username</label>
                                             <div class="control has-icons-left">
@@ -60,31 +68,7 @@
                                             SEND REQUEST
                                         </button>
                                     </form>
-                                    {% with messages = get_flashed_messages(with_categories=true) %}
-                                        {% if messages %}
-                                            <div class="mt-4">
-                                            {% for category, message in messages %}
-                                                <div class="notification is-{{ category }} is-light p-3">
-                                                {{ message }}
-                                                </div>
-                                            {% endfor %}
-                                            </div>
-                                        {% endif %}
-                                    {% endwith %}
 
-                                    <!-- {% if match is not none %}
-                                    <div class="mt-4">
-                                        {% if match is true %}
-                                            {% if is_self is true %}
-                                                <div class="notification is-warning is-light p-3">You cannot add yourself!</div>
-                                            {% else %}
-                                                <div class="notification is-success is-light p-3">Request sent!</div>
-                                            {% endif %}
-                                        {% else %}
-                                            <div class="notification is-danger is-light p-3">Player doesn't exist.</div>
-                                        {% endif %}
-                                    </div>
-                                    {% endif %} -->
                                 </div>
                                 <div class="box">
                                     <h3 class="title is-4"><i class="fas fa-clock has-text-info mr-2"></i> Pending Requests</h3>
@@ -92,6 +76,7 @@
                                     {% if frq %}
                                         <div class="content">
                                             {% for f in frq %}
+                                            
                                             <a href="{{url_for('player_profile', username=f['username'])}}" class="request-item">
                                                 <div class="is-flex is-align-items-center">
                                                     <figure class="image is-32x32 mr-3">
@@ -104,12 +89,21 @@
                                                         <p class="is-size-7 has-text-grey">wants to be friends</p>
                                                     </div>
                                                 </div>
-                                                <form method="post" action="/friends"">
-                                                    <input type="hidden" name="friend_id" value="{{ f['player_id'] }}">
-                                                    <button type="submit" class="button mt-2 mb-4 is-info is-small is-light has-text-weight-bold">
-                                                        ACCEPT
-                                                    </button>
-                                                </form>
+                                                <div class="field is-grouped">
+
+                                                    <form method="post" action="{{ url_for('friends') }}">
+                                                        <input type="hidden" name="friend_id" value="{{ f['player_id'] }}">
+                                                        <button type="submit" class="button mt-2 mb-4 is-info is-small is-light has-text-weight-bold">
+                                                            ACCEPT
+                                                        </button>
+                                                    </form>
+                                                    <form method="post" action="{{ url_for('friends') }}">
+                                                        <input type="hidden" name="reject_id" value="{{ f['player_id'] }}">
+                                                        <button type="submit" class="button mt-2 mb-4 is-info is-small is-light has-text-weight-bold">
+                                                            DECLINE
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </a>
                                             {% endfor %}
                                         </div>

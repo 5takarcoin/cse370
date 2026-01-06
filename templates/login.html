@@ -39,9 +39,9 @@
                 <div class="box login-card p-6">
                     <h2 class="title is-4 has-text-centered mb-5">Login</h2>
 
-                    {% for m in get_flashed_messages() %}
-                        <div class="notification is-danger is-light p-3 has-text-centered mb-4">
-                            <i class="fas fa-exclamation-circle mr-1"></i> {{m}}
+                    {% for type, message in get_flashed_messages(with_categories=true) %}
+                        <div class="notification is-{{ type }} is-light p-3 has-text-centered mb-4">
+                            <i class="fas fa-exclamation-circle mr-1"></i> {{ message }}
                         </div>
                     {% endfor %}
 

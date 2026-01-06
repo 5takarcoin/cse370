@@ -52,7 +52,7 @@ def home():
 @app.route("/logout")
 def logout():
     session.clear()
-    flash("Logged out successfully.")
+    flash('Logged out successfully.', 'success')
     return redirect(url_for("login"))
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -64,7 +64,7 @@ def login():
         conn = get_db_connection()
 
         player_query = '''
-            SELECT player_id, username, first_name, last_name, password
+            SELECT player_id, username, first_name, last_name, email, password
             FROM players WHERE username=%s;
         '''
 
@@ -84,9 +84,10 @@ def login():
             session['username'] = player['username']
             session['fname'] = player['first_name']
             session['lname'] = player['last_name']
+            session['email'] = player['email']
             return redirect(url_for('home'))
         else:
-            flash("Username or password is incorrect!")
+            flash('Username or password is incorrect!', 'warning')
             return redirect(url_for('login'))
 
     else:
@@ -143,9 +144,9 @@ def signup():
             if username_taken or email_taken:
                 valid = False
             if username_taken:
-                flash("Username is taken! Please try a different one.")
+                flash('Username is taken! Please try a different one.', 'warning')
             if email_taken:
-                flash("Email is associated with an existing account! Please log in.")
+                flash('Email is associated with an existing account! Please log in.', 'warning')
         if valid:
             with conn.cursor() as cursor:
                 cursor.execute(
@@ -154,7 +155,7 @@ def signup():
                 )
                 conn.commit()
                 conn.close()
-                flash("Sign up successful! Please log in.")
+                flash('Sign up successful! Please log in.', 'success')
                 return redirect(url_for('login'))
         conn.close()
     today = date.today().isoformat()
@@ -282,7 +283,7 @@ def friends():
                                 conn.commit()
                             flash('Friend request accepted', 'success')
                     elif existing_frn:
-                        flash("You have already befriended this person!")
+                        flash('You have already befriended this person!', 'warning')
                     else:    
                         insertion_query = '''
                             INSERT INTO friend_requests (sender_id, receiver_id)
@@ -291,9 +292,9 @@ def friends():
                         with conn.cursor() as cursor:
                             cursor.execute(insertion_query, (player, target))
                             conn.commit()
-                        flash("Friend request sent!", 'success')
+                        flash('Friend request sent!', 'success')
             else:
-                flash("Player not found!", 'danger')
+                flash('Player not found!', 'warning')
 
         return redirect(url_for('friends'))
 
@@ -334,21 +335,8 @@ def friends():
         cursor.execute(frq_query, (player_id,))
         frq = cursor.fetchall()
 
-    with conn.cursor() as cursor:
-        query = """
-            SELECT CONCAT(first_name, ' ', last_name) AS name, username
-            FROM players
-            WHERE player_id IN (
-                SELECT befriended_id FROM friendships WHERE befriender_id = %s
-                UNION
-                SELECT befriender_id FROM friendships WHERE befriended_id = %s
-            );
-        """
-        cursor.execute(query, (session['id'],session['id'],))
-        friends = cursor.fetchall()
-
     conn.close()
-    return render_template("friends.html", friends=friends, frn=frn, frq=frq)
+    return render_template("friends.html", frn=frn, frq=frq)
 
 @app.route("/player/<username>")
 def player_profile(username):
@@ -365,9 +353,18 @@ def player_profile(username):
             b.account_balance,
             b.account_no
         FROM players p
-        INNER JOIN ownership o ON o.player_id = p.player_id
-        INNER JOIN bank_accounts b ON b.account_no = o.account_no
+        LEFT JOIN ownership o ON o.player_id = p.player_id
+        LEFT JOIN bank_accounts b ON b.account_no = o.account_no
         WHERE p.username=%s;
+    '''
+    friendship_query = '''
+        SELECT EXISTS (
+            SELECT 1
+            FROM friendships
+            WHERE
+                (befriender_id = %s AND befriended_id = %s)
+                or (befriender_id = %s AND befriended_id = %s)
+        ) as is_friend;
     '''
     bank_query = '''
     SELECT SUM(b.account_balance) AS total_balance
@@ -532,7 +529,7 @@ def create_bank_account():
     
         if not valid:
             conn.close()
-            flash("You do not have that much money!")
+            flash('You do not have that much money!', 'warning')
             return redirect(url_for('create_bank_account'))
         with conn.cursor() as cursor:
             account_no = f'MONEYGAME-{account_type.upper()}-{player_id:05}'
@@ -577,9 +574,9 @@ def deposit():
             with conn.cursor() as cursor:
                 cursor.execute(update_query, (amount, amount, player_id))
                 conn.commit()
-                flash('Deposit successful!')
+                flash('Deposit successful!', 'success')
         else:
-            flash("You don't have that much money!")
+            flash("You don't have that much money!", 'warning')
         
         return redirect(url_for('deposit'))
 
@@ -635,9 +632,9 @@ def withdraw():
             with conn.cursor() as cursor:
                 cursor.execute(update_query, (amount, amount, player_id))
                 conn.commit()
-                flash('Withdrew successfully!')
+                flash('Withdrew successfully!', 'success')
         else:
-            flash("You don't have that much money!")
+            flash("You don't have that much money!", 'warning')
 
         
         return redirect(url_for('withdraw'))
@@ -716,7 +713,7 @@ def transfer():
         '''
 
         if sender_account == receiver_account:
-            flash("You cannot send money to yourself!")
+            flash("You can't send money to yourself!", 'warning')
             return render_template(
                 'transfer.html',
                 account_no = account_no,
@@ -730,7 +727,7 @@ def transfer():
             exists = bool(row['ex'])
 
         if not exists:
-            flash("Account not found!")
+            flash('Account not found!', 'warning')
             return render_template(
                 'transfer.html',
                 account_no = account_no,
@@ -749,10 +746,10 @@ def transfer():
 
                 conn.commit()
                 conn.close()
-                flash('Money sent successfully!')
+                flash('Money sent successfully!', 'success')
                 return redirect(url_for('transfer'))
         else:
-            flash("You don't have that much money!")
+            flash("You don't have that much money!", 'warning')
             return render_template(
                 'transfer.html',
                 account_no = account_no,
@@ -914,10 +911,10 @@ def stocks():
 
                 conn.commit()
                 conn.close()
-                flash("Stock bought successfully!")
+                flash('Stock bought successfully!', 'success')
                 return redirect(url_for('stocks'))
         else:
-            flash("You don't have enough money to do that!")
+            flash("You don't have enough money to do that!", 'warning')
     elif selling:
         stock_query = '''
             SELECT s.abbreviation, i.investment_amount
@@ -944,7 +941,7 @@ def stocks():
         
         selected = request.form.getlist('sell')
         if not selected:
-            flash("Please select at least one investment to sell!")
+            flash('Please select at least one investment to sell!', 'warning')
             return redirect(url_for('stocks'))
             
         for s in selected:
@@ -977,6 +974,111 @@ def stocks():
     
     conn.close()
     return render_template('stocks.html', stocks=stocks, investments=invs, balance=balance)
+
+@app.route('/edit_profile', methods=["GET", "POST"])
+def edit_profile():
+    conn = get_db_connection()
+    player_id = session['id']
+    if request.method == 'POST':
+        fname = request.form['fname']
+        lname = request.form['lname']
+        username = request.form['username']
+        email = request.form['email']
+        new_password = request.form['new_password']
+        old_password = request.form['old_password']
+
+        player_query = '''
+            SELECT
+                first_name,
+                last_name,
+                username,
+                email,
+                password
+            FROM players WHERE player_id=%s;
+        '''
+
+        with conn.cursor() as cursor:
+            cursor.execute(player_query, (player_id,))
+            player_details = cursor.fetchone()
+
+        old_password_bytes = old_password.encode('utf-8')
+        stored_hash = player_details['password'].encode('utf-8') 
+        passbool = bcrypt.checkpw(old_password_bytes, stored_hash)
+
+        if passbool == False:
+            flash("Incorrect password!")
+            conn.close()
+            return redirect(url_for('edit_profile'))
+
+
+
+        valid = True
+
+        validation_query = '''
+        SELECT
+            EXISTS (
+                SELECT 1 FROM players WHERE username = %s 
+            ) AS username_taken,
+            EXISTS (
+                SELECT 1 FROM players WHERE email = %s
+            ) AS email_taken;
+        '''
+
+
+
+        update_query = '''
+            UPDATE players
+            SET
+                first_name = %s,
+                last_name = %s,
+                username = %s,
+                email = %s,
+                password = %s
+            WHERE player_id = %s
+        '''
+
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(validation_query, (username, email))
+            row = cursor.fetchone()
+            username_taken = bool(row['username_taken'])
+            email_taken = bool(row['email_taken'])
+            if username_taken or email_taken:
+                valid = False
+            if username_taken:
+                flash('Username is taken! Please try a different one.', 'warning')
+            if email_taken:
+                flash('Email is associated with an existing account!', 'warning')
+        if valid:
+            if not fname: fname = player_details['first_name']
+            if not lname: lname = player_details['last_name']
+            if not username: username = player_details['username']
+            if not email: email = player_details['email']
+            if not new_password:
+                new_password = player_details['password']
+            else:
+                new_password_bytes = new_password.encode('utf-8')
+                salt = bcrypt.gensalt()
+                new_password = bcrypt.hashpw(new_password_bytes, salt).decode('utf-8')
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    update_query,
+                    (fname, lname, username, email, new_password, player_id)
+                )
+                conn.commit()
+                session['username'] = username
+                session['fname'] = fname
+                session['lname'] = lname
+                session['email'] = email
+                flash('Changes saved!', 'success')
+                conn.close()
+                return redirect(url_for('edit_profile'))
+
+    conn.close()
+    return render_template(
+        'edit_profile.html'
+        )
+
     
 if __name__ == "__main__":
     app.run(debug=True)
